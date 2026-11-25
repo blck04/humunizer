@@ -1,0 +1,28 @@
+# Large model weights (5.5GB Q3 GGUF)
+*.gguf
+local-model/gguf/*.gguf
+
+# Precompiled local tools/binaries
+tools/llama/
+
+# Dependencies & caches
+node_modules/
+.npm/
+
+# IDE & system files
+.workbuddy-ai/
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tmp/
+scratch/

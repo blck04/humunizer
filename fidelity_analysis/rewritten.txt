@@ -1,0 +1,23 @@
+Chapter 2. Literature Review
+
+The formulation of an automated diagnostic tool needs to take place within the space between the pedagogical theory for classroom teaching and the practical considerations within the field of Natural Language Processing (NLP). The literature review aims to provide this analysis. The review starts by exploring the fundamentals of formative assessment and error analysis. This will be followed by an examination of available commercial grading solutions. After this, the technical process involved in the data analysis will be considered (with a focus on Optical Character Recognition (OCR), semantic sentence comparison and automated curriculum mapping). The chapter then ends with the clear indication of what the problems with current educational technology are that need to be solved with the proposed research.
+
+Figure 2.1: Inform learners, adjust instruction.
+
+2.2. Theoretical and Conceptual framework
+
+2.2.1 Formative Assessment as an Information Feedback Mechanism
+
+The term "formative" assessment refers to a form of assessment that creates an immediate feedback loop in terms of how teachers teach and how learners learn. This has been the subject of research for many decades and the landmark work of Black and Wiliam (1998) established the fact that frequent and embedded assessment can have a significant positive impact on performance. It can be especially effective for learners who are struggling.
+
+However, the frequency of assessment itself is not enough to make a difference. A significant factor in making a difference is the feedback that is provided. According to Hattie & Timperley (2007) feedback on task execution, on the processing of the task or even on the metacognitive self-regulation can contribute to the learners successfully narrowing the gap between their actual understanding and a given curriculum requirement. Saying that a learner did well or giving the score out of 20 without any further information does not help that learner understand what they need to do next. We need a finer grained diagnostic system.
+
+A score of 50% does not tell us which physical law a learner struggled with or at which stage of an algebraic calculation the problem originated. In order for remedial action to be taken we need to connect the specific errors of a learner to the specific syllabus topics. As such the proposed system is more of an in-class assistant rather than an automated grader. The aim is to provide diagnostic information that allows teachers to host specific revision sessions. Also, as there is the potential for incorrect classifications from algorithms, it is essential for teachers to have agency in this process. They must be able to view, confirm and override all the classifications from the model.
+
+2.2.2 Error Analysis and Conceptual Misconceptions
+
+Error analysis is based on the idea that when students make mistakes in their writing then there is a record that can be interpreted which shows how the student is thinking. Often when it comes to STEM subjects the raw score can hide some significant conceptual errors.
+
+For example in Zimbabwean high school mathematics the classroom teacher is often seeing students make the same kinds of procedural mistakes in the class when trying to solve simultaneous equations whether they use substitution, elimination or matrices. These types of errors continue when the learner is doing the Advanced level calculus. It is a problem that is often pointed out in regional reports on examination (in Southern Africa). The errors are not accidental or random. Teachers can fix them if they can get diagnostic information on them prior to the final examinations. They are patterns that occur regularly and are predictable.
+
+The challenge is that while there are many qualitative misconceptions that are described in the pedagogical literature, few of them can be mapped easily to an automated NLP pipeline. For the purpose of computational tractability, 5 discrete operational categories are defined in this study. These categories are based on a modified form of Anderson & Krathwohl's adaption of Bloom's taxonomy. This is modified in such a way that it distinctly separates the factual knowledge and conceptual knowledge from the cognitive processes. The classification framework and the operational definitions used for the classification are in Table 2.1.

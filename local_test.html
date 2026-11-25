@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local Humanizer Test</title>
+<style>
+  :root { color-scheme: light; --bg:#f6f7fb; --card:#fff; --text:#17202a; --muted:#64748b; --line:#dbe1ea; --accent:#3b5bdb; --ok:#1a7f4b; --bad:#c92a2a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
+  .wrap { max-width:980px; margin:0 auto; padding:28px 18px 60px; }
+  h1 { margin:0 0 4px; font-size:24px; }
+  .sub { color:var(--muted); margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:16px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  label { display:block; font-weight:650; margin-bottom:8px; }
+  textarea { width:100%; min-height:190px; resize:vertical; border:1px solid var(--line); border-radius:10px; padding:12px; font:inherit; color:var(--text); background:#fff; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+  button { border:0; border-radius:9px; padding:10px 16px; font:inherit; font-weight:650; cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; }
+  button.ghost { background:#eef2ff; color:var(--accent); }
+  button:disabled { opacity:.55; cursor:not-allowed; }
+  .status { color:var(--muted); font-size:14px; }
+  .status.ok { color:var(--ok); }
+  .status.bad { color:var(--bad); }
+  pre { white-space:pre-wrap; word-wrap:break-word; margin:0; font:inherit; }
+  .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-top:12px; }
+  .pill { background:#f8fafc; border:1px solid var(--line); border-radius:9px; padding:8px 10px; font-size:13px; color:var(--muted); }
+  .pill b { display:block; color:var(--text); font-size:15px; margin-top:2px; }
+  code { background:#f1f3f7; padding:1px 5px; border-radius:5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Local Humanizer Test</h1>
+  <p class="sub">Runs <code>humanizer-12b-Q3-QAT.gguf</code> on your machine through <code>127.0.0.1:8080</code>. Expect roughly 4–5 minutes for a 300-word draft.</p>
+
+  <div class="card">
+    <label for="draft">Draft to rewrite</label>
+    <textarea id="draft" spellcheck="false"></textarea>
+    <div class="row">
+      <button class="primary" id="run">Humanize locally</button>
+      <button class="ghost" id="sample">Load sample</button>
+      <button class="ghost" id="health">Check server</button>
+      <span class="status" id="status">Server not checked</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Rewritten output</label>
+    <pre id="output">No output yet.</pre>
+    <div class="meta">
+      <div class="pill">Status<b id="mStatus">idle</b></div>
+      <div class="pill">Elapsed<b id="mElapsed">—</b></div>
+      <div class="pill">Input words<b id="mIn">0</b></div>
+      <div class="pill">Output words<b id="mOut">0</b></div>
+      <div class="pill">Numbers missing<b id="mMissing">—</b></div>
+      <div class="pill">Numbers added<b id="mAdded">—</b></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const INSTR = "Rewrite the text below so it reads like a person wrote it, not a language model.\n\nReorganize it as you see fit. Vary sentence length on purpose. Cut hedging,\nthroat-clearing, and any sentence that only announces what comes next.\nPrefer the concrete word over the abstract one. It is fine to sound uneven.\n\nEvery fact, number, unit, date, name and quotation must survive unchanged.";
+const SEP = "\n\n### Rewritten:\n\n";
+const URL = "http://127.0.0.1:8080";
+
+const SAMPLE = "In recent years, urban heat islands have become an increasingly important topic in environmental research. It is important to note that cities often experience higher temperatures than nearby rural areas because buildings, roads, and other surfaces absorb and retain heat. Furthermore, this temperature difference can influence energy demand, public health outcomes, and the overall quality of urban life. An estimated 4.2% of residents in one metropolitan area reported heat-related symptoms during a single heat wave. The data suggest that older adults and people with chronic conditions are particularly vulnerable. In conclusion, a combination of measurement, planning, and community involvement is likely to provide the most reliable path forward.";
+
+const $ = id => document.getElementById(id);
+$('draft').value = SAMPLE;
+
+function nums(s) {
+  return (s.match(/\b\d[\d,.]*\s*(?:%|percent|million|billion|thousand|hours?|days?|years?)?\b/gi) || [])
+    .map(x => x.toLowerCase().replace(/\s+/g, ' ').trim()).sort();
+}
+function words(s) { return s.trim() ? s.trim().split(/\s+/).length : 0; }
+function setStatus(msg, cls) { $('status').textContent = msg; $('status').className = 'status ' + (cls || ''); }
+
+$('sample').onclick = () => { $('draft').value = SAMPLE; $('output').textContent = 'No output yet.'; };
+
+$('health').onclick = async () => {
+  try {
+    const r = await fetch(URL + '/health');
+    const j = await r.json();
+    if (j.status === 'ok') setStatus('Server ready', 'ok');
+    else setStatus('Model still loading', '');
+  } catch (e) { setStatus('Cannot reach server', 'bad'); }
+};
+
+$('run').onclick = async () => {
+  const draft = $('draft').value.trim();
+  if (!draft) { setStatus('Enter a draft first', 'bad'); return; }
+  const prompt = INSTR + '\n\n' + draft + SEP;
+  const t0 = Date.now();
+  $('run').disabled = true;
+  $('mStatus').textContent = 'running';
+  $('mElapsed').textContent = '0s';
+  $('output').textContent = 'Sending to local model. Prompt processing plus generation can take several minutes...';
+  setStatus('Generating...', '');
+
+  const ticker = setInterval(() => {
+    $('mElapsed').textContent = Math.round((Date.now() - t0) / 1000) + 's';
+  }, 1000);
+
+  try {
+    const res = await fetch(URL + '/completion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Connection': 'close' },
+      body: JSON.stringify({
+        prompt,
+        temperature: 1.0,
+        top_p: 0.95,
+        top_k: 0,
+        min_p: 0,
+        repeat_penalty: 1.0,
+        n_predict: 2048
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
+    const data = await res.json();
+    const text = (data.content || '').trim();
+    if (!text) throw new Error('Empty output');
+
+    const a = nums(draft), b = nums(text), bs = new Set(b), as = new Set(a);
+    const missing = a.filter(x => !bs.has(x));
+    const added = b.filter(x => !as.has(x));
+
+    $('output').textContent = text;
+    $('mStatus').textContent = 'done';
+    $('mIn').textContent = words(draft);
+    $('mOut').textContent = words(text);
+    $('mMissing').textContent = missing.length ? missing.join(', ') : 'none';
+    $('mAdded').textContent = added.length ? added.join(', ') : 'none';
+    setStatus('Done', 'ok');
+  } catch (e) {
+    $('mStatus').textContent = 'error';
+    $('output').textContent = 'FAILED: ' + e.message;
+    setStatus('Failed', 'bad');
+  } finally {
+    clearInterval(ticker);
+    $('mElapsed').textContent = Math.round((Date.now() - t0) / 1000) + 's';
+    $('run').disabled = false;
+  }
+};
+</script>
+</body>
+</html>

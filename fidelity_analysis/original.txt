@@ -1,0 +1,23 @@
+Chapter 2: Literature Review
+
+Building an automated diagnostic platform requires bridging two distinct domains: classroom pedagogical theory and applied natural language processing. Accordingly, this review traces that intersection. We begin by evaluating the foundations of formative assessment and error analysis, move into an appraisal of commercial grading software, and then examine the technical pipeline—specifically optical character recognition (OCR), semantic sentence comparison, and automated curriculum mapping. The chapter wraps up by pinpointing the exact gaps in current educational technology that this research sets out to address.
+
+Figure 2.1: From learner response to instructional action
+
+2.2 Theoretical and Conceptual Framework
+
+2.2.1 Formative Assessment as an Information Loop
+
+Assessment only becomes "formative" when it prompts immediate adjustments in how teachers teach and how students study. Decades of research back this up: Black and Wiliam’s landmark 1998 synthesis proved that regular, embedded assessment produces notable achievement gains, with struggling learners benefiting the most.
+
+Yet simply testing more frequently accomplishes little. Impact comes down to feedback architecture. Hattie and Timperley (2007) showed that remarks targeting task execution, processing habits, and metacognitive self-regulation actively help pupils close the gap between their current grasp and curricular benchmarks. Fluffy praise ("good effort") or an unadorned mark out of twenty, by contrast, gives a pupil zero actionable insight on where to go next. Teachers need granular diagnostics.
+
+A percentage score cannot tell you which physics law tripped up a learner or at which step an algebraic calculation derailed. Remediation demands a direct mapping between individual missteps and specific syllabus topics. For this reason, the system proposed here is designed as a classroom companion rather than an automated grader. Its goal is to pinpoint trouble spots so teachers can run targeted revision sessions. Because algorithmic evaluations can misfire, teacher agency is non-negotiable: educators can inspect, verify, and override every classification the model generates.
+
+2.2.2 Error Analysis and Conceptual Misconceptions
+
+Error analysis operates on a straightforward principle: written mistakes leave a readable audit trail of a student's mental model. In STEM education, raw numerical scores routinely conceal glaring conceptual fault lines.
+
+Take secondary mathematics in Zimbabwe. Classroom teachers repeatedly watch students stumble into the exact same procedural pitfalls when tackling simultaneous equations, regardless of whether they choose substitution, elimination, or matrices. These same missteps carry straight over into Advanced-level calculus, a systemic issue regularly highlighted in Southern African regional examiner reports. These errors are not random noise. They are predictable, recurring patterns that teachers can fix—if diagnostic tools surface them before the final exam.
+
+The stumbling block is that while pedagogical literature catalogs dozens of qualitative student misconceptions, virtually none of these taxonomies translate cleanly into automated NLP pipelines. To make classification computationally tractable, this study establishes five discrete operational classes. These categories adapt Anderson and Krathwohl's revision of Bloom’s taxonomy, explicitly separating factual and conceptual knowledge from underlying cognitive processes. Table 2.1 outlines the classification rubric and operational definitions applied by the classifier.

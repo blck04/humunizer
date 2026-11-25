@@ -1,0 +1,13 @@
+sample_id,run_id,variant,engine,strength,tone,rewrite_hash,submission_date,turnitin_model_date,display_score,raw_score,highlighted_sentences,no_action_pass,note
+academic_001,smoke_local_std,local_standard_natural,local,standard,natural,ef7aa519e93966ed,,,,,,,PENDING
+academic_002,smoke_local_std,local_standard_natural,local,standard,natural,4a13dd947d4a8dfd,,,,,,,PENDING
+academic_003,smoke_local_std,local_standard_natural,local,standard,natural,a85ae5bd79bc4ce2,,,,,,,PENDING
+business_001,smoke_local_std,local_standard_natural,local,standard,natural,542d6bcd51ea4a24,,,,,,,PENDING
+business_002,smoke_local_std,local_standard_natural,local,standard,natural,e759cc4bc7a827dc,,,,,,,PENDING
+business_003,smoke_local_std,local_standard_natural,local,standard,natural,8b625f5e05eb6728,,,,,,,PENDING
+blog_001,smoke_local_std,local_standard_natural,local,standard,natural,58134511ea642052,,,,,,,PENDING
+blog_002,smoke_local_std,local_standard_natural,local,standard,natural,66d31c65aea424d9,,,,,,,PENDING
+blog_003,smoke_local_std,local_standard_natural,local,standard,natural,5b81823a25d41539,,,,,,,PENDING
+technical_001,smoke_local_std,local_standard_natural,local,standard,natural,be7d729b341f8ac9,,,,,,,PENDING
+technical_002,smoke_local_std,local_standard_natural,local,standard,natural,bc76a52349bd414e,,,,,,,PENDING
+technical_003,smoke_local_std,local_standard_natural,local,standard,natural,f1270e77da6e2b39,,,,,,,PENDING

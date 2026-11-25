@@ -1,0 +1,13 @@
+sample_id,run_id,variant,engine,strength,tone,rewrite_hash,submission_date,turnitin_model_date,display_score,raw_score,highlighted_sentences,no_action_pass,note
+academic_001,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,e53e4b40d909f26e,,,,,,,PENDING
+academic_002,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,4800d0a7ea4348d5,,,,,,,PENDING
+academic_003,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,18832757e57e8700,,,,,,,PENDING
+business_001,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,c415600db4534529,,,,,,,PENDING
+business_002,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,425c2b648b278988,,,,,,,PENDING
+business_003,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,a74350dadcafafe8,,,,,,,PENDING
+blog_001,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,2a2fbb5b53989d57,,,,,,,PENDING
+blog_002,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,11bfd32e9fbe88f0,,,,,,,PENDING
+blog_003,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,beef23898066fc23,,,,,,,PENDING
+technical_001,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,52c07cfd506910a5,,,,,,,PENDING
+technical_002,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,49828e393bccb39b,,,,,,,PENDING
+technical_003,smoke_local_enh,local_enhanced_natural,local,enhanced,natural,7ef8b55840625948,,,,,,,PENDING

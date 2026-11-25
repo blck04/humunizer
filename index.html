@@ -1,0 +1,2846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humanly — AI Humanizer & Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* Warm Editorial Palette */
+  --bg:#fcfcfc;
+  --bg2:#ffffff;
+  --bg3:#f7f8fa;
+  --bg4:#e5e5e5;
+  --border:#e5e5e5;
+  --border2:#d1d5db;
+  --text:#000000;
+  --text2:#14213d;
+  --text3:#6b7280;
+  --accent:#14213d;
+  --accent2:#fca311;
+  --accent-dim:#000000;
+  --amber:#fca311;
+  --navy:#14213d;
+  --green:#15803d;
+  --red:#dc2626;
+  --orange:#fca311;
+  --blue:#14213d;
+  --radius:10px;
+  --radius-sm:6px;
+  --font:-apple-system,BlinkMacSystemFont,'Geist','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --font-serif:'Newsreader','Playfair Display','Georgia','Times New Roman',serif;
+  --mono:'Geist Mono','SF Mono','Fira Code','Cascadia Code',Consolas,monospace;
+  --shadow:0 2px 10px rgba(20,33,61,.05);
+  --shadow-lg:0 12px 32px rgba(20,33,61,.12);
+}
+::selection{background:rgba(252,163,17,.3);color:#000000}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.65;overflow:hidden}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ===== LAYOUT ===== */
+.app{display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;gap:16px}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;letter-spacing:-.4px}
+.logo-icon{width:28px;height:28px;border-radius:6px;background:var(--navy);border:2px solid var(--amber);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;font-family:var(--font-serif)}
+.logo-text{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--navy);letter-spacing:-.4px}
+.tabs{display:flex;gap:3px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px}
+.tab{padding:6px 16px;border-radius:4px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;transition:all .18s;border:none;background:none;font-family:var(--font)}
+.tab:hover{color:var(--text);background:var(--bg4)}
+.tab.active{background:var(--navy);color:#ffffff}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.word-balance{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:500;padding:5px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:20px}
+.word-balance .dot{width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.btn-ghost{padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;border:1px solid var(--border2);background:var(--bg2);transition:all .18s;font-family:var(--font)}
+.btn-ghost:hover{color:var(--text);border-color:var(--amber);background:var(--bg3)}
+
+/* ===== MAIN ===== */
+.main{flex:1;overflow-y:auto;padding:28px 24px;display:flex;justify-content:center}
+.container{max-width:1120px;width:100%;margin:0 auto}
+
+/* ===== TOOL HEADER ===== */
+.tool-header{margin-bottom:22px}
+.tool-title{font-family:var(--font-serif);font-size:30px;font-weight:700;letter-spacing:-.5px;color:var(--navy);margin-bottom:4px}
+.tool-desc{color:var(--text3);font-size:14px;line-height:1.6}
+
+/* ===== HUMANIZER ===== */
+.humanizer-layout{display:flex;flex-direction:column;gap:16px}
+
+/* Input mode switcher */
+.mode-switch-bar{display:flex;gap:8px;margin-bottom:4px}
+.mode-btn{padding:8px 16px;border-radius:var(--radius-sm);background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .2s;font-family:var(--font);box-shadow:var(--shadow)}
+.mode-btn:hover{color:var(--text);border-color:var(--amber)}
+.mode-btn.active{background:var(--navy);color:#ffffff;border-color:var(--navy)}
+.mode-btn svg{width:16px;height:16px}
+
+/* Controls bar */
+.controls-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.control-group{display:flex;align-items:center;gap:8px}
+.control-label{font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.select{padding:6px 28px 6px 12px;font-size:13px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--navy);cursor:pointer;font-family:var(--font);font-weight:500;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2314213d' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .15s}
+.select:hover,.select:focus{border-color:var(--amber);outline:none}
+.divider-v{width:1px;height:20px;background:var(--border)}
+
+/* Text panels */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.panel-label{font-size:14px;font-weight:700;color:var(--navy);font-family:var(--font-serif)}
+.panel-actions{display:flex;align-items:center;gap:8px}
+.word-count{font-size:12px;color:var(--text3);font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.word-count .num{color:var(--navy);font-weight:600}
+.word-count .over{color:var(--red)}
+.icon-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);border:none;background:none;transition:all .18s}
+.icon-btn:hover{color:var(--navy);background:var(--bg4)}
+.icon-btn svg{width:15px;height:15px}
+
+.textarea-wrap{flex:1;display:flex;flex-direction:column;min-height:300px;background:#ffffff}
+textarea{flex:1;width:100%;padding:18px;background:none;border:none;color:var(--text);font-family:var(--font);font-size:14px;line-height:1.75;resize:none;outline:none}
+textarea::placeholder{color:#9ca3af}
+.output-area{flex:1;padding:18px;overflow-y:auto;font-size:14px;line-height:1.75;min-height:300px;white-space:pre-wrap;word-break:break-word;background:#ffffff}
+.output-area.empty{display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px;text-align:center}
+.output-area .diff-add{background:rgba(21,128,61,.12);color:var(--green);font-weight:500;border-radius:3px;padding:0 2px}
+.output-area .diff-del{background:rgba(220,38,38,.1);color:var(--red);text-decoration:line-through;border-radius:3px;padding:0 2px}
+
+/* Action bar */
+.action-bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.action-left{display:flex;gap:8px}
+.btn{padding:10px 22px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:all .18s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--navy);color:#ffffff;border:1px solid var(--navy)}
+.btn-primary:hover{background:var(--accent-dim);border-color:var(--accent-dim);box-shadow:0 4px 14px rgba(20,33,61,.22)}
+.btn-primary:disabled{background:var(--bg4);color:var(--text3);border-color:var(--border);cursor:not-allowed;box-shadow:none}
+.btn-secondary{background:var(--bg2);color:var(--navy);border:1px solid var(--border2)}
+.btn-secondary:hover{color:var(--text);border-color:var(--amber);background:var(--bg3)}
+.btn svg{width:16px;height:16px}
+
+/* Processing steps overlay */
+.processing-overlay{position:fixed;inset:0;background:rgba(20,33,61,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100}
+.processing-overlay.show{display:flex}
+.processing-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:32px 40px;width:420px;text-align:center;box-shadow:var(--shadow-lg)}
+.processing-steps{display:flex;flex-direction:column;gap:14px;margin-top:20px;text-align:left}
+.proc-step{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--text3);transition:all .3s}
+.proc-step.active{color:var(--navy);font-weight:600}
+.proc-step.done{color:var(--green)}
+.proc-step .step-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.proc-step.active .step-icon .spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--amber);border-radius:50%;animation:spin .6s linear infinite}
+.proc-step.done .step-icon svg{width:16px;height:16px}
+.proc-step.pending .step-icon .dot{width:6px;height:6px;border-radius:50%;background:var(--border2)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Score badge */
+.score-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;font-family:var(--mono)}
+.score-badge.human{background:rgba(21,128,61,.12);color:var(--green);border:1px solid rgba(21,128,61,.3)}
+.score-badge.ai{background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.25)}
+.score-badge .dot{width:6px;height:6px;border-radius:50%}
+
+/* ===== MODEL FIDELITY REPORT ===== */
+.fidelity-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.fidelity-title{font-size:13px;font-weight:700;color:var(--navy);font-family:var(--font-serif);letter-spacing:.3px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.fidelity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}
+.fidelity-grid > div{display:flex;flex-direction:column;gap:3px}
+.fidelity-grid .k{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.fidelity-grid .v{font-size:15px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.fidelity-grid .v.good{color:var(--green)}
+.fidelity-grid .v.bad{color:var(--red)}
+.fidelity-note{font-size:12px;color:var(--text3);margin-top:12px;border-top:1px solid var(--border);padding-top:10px;line-height:1.5}
+.engine-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(20,33,61,.08);color:var(--navy);border:1px solid rgba(20,33,61,.2);font-family:var(--mono);font-weight:600}
+
+/* ===== DETECTOR ===== */
+.detector-layout{display:flex;flex-direction:column;gap:16px}
+.detector-result{display:none;gap:16px;grid-template-columns:290px 1fr}
+.detector-result.show{display:grid}
+@media(max-width:768px){.detector-result.show{grid-template-columns:1fr}}
+
+.score-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow)}
+.score-circle{width:140px;height:140px;margin:0 auto 16px;position:relative}
+.score-circle svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-circle .track{fill:none;stroke:var(--bg4);stroke-width:8}
+.score-circle .fill{fill:none;stroke-width:8;stroke-linecap:round;stroke:var(--amber);transition:stroke-dashoffset 1s ease}
+.score-value{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-value .pct{font-size:36px;font-weight:700;letter-spacing:-1px;font-family:var(--font-serif);color:var(--navy)}
+.score-value .label{font-size:12px;color:var(--text3);margin-top:2px}
+.score-status{font-size:15px;font-weight:600;margin-top:4px;color:var(--navy)}
+.score-meta{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.meta-row{display:flex;justify-content:space-between;font-size:13px}
+.meta-row .key{color:var(--text3)}
+.meta-row .val{color:var(--navy);font-weight:600;font-family:var(--mono)}
+
+.detail-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.detail-title{font-size:15px;font-weight:700;margin-bottom:12px;color:var(--navy);font-family:var(--font-serif)}
+.sentence-list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto}
+.sentence-item{padding:10px 14px;border-radius:6px;font-size:13px;line-height:1.6;position:relative;border-left:3px solid}
+.sentence-item.high{background:rgba(220,38,38,.06);border-color:var(--red);color:#991b1b}
+.sentence-item.med{background:rgba(252,163,17,.08);border-color:var(--amber);color:#92400e}
+.sentence-item.low{background:rgba(21,128,61,.06);border-color:var(--green);color:#166534}
+.sentence-item .pct-tag{position:absolute;right:10px;top:10px;font-size:11px;font-weight:700;font-family:var(--mono);opacity:.85}
+
+/* ===== GRAMMAR ===== */
+.grammar-layout{display:flex;flex-direction:column;gap:16px}
+.grammar-results{display:none;flex-direction:column;gap:10px}
+.grammar-results.show{display:flex}
+.grammar-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow)}
+.grammar-item .g-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-weight:700}
+.grammar-item .g-icon.err{background:rgba(220,38,38,.12);color:var(--red)}
+.grammar-item .g-icon.warn{background:rgba(252,163,17,.15);color:#b45309}
+.grammar-item .g-icon.sugg{background:rgba(20,33,61,.1);color:var(--navy)}
+.grammar-item .g-body{flex:1}
+.grammar-item .g-type{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.grammar-item .g-msg{font-size:14px;color:var(--text);margin-top:2px}
+.grammar-item .g-fix{margin-top:6px;font-size:13px;color:var(--green);cursor:pointer;font-weight:600;text-decoration:underline}
+.grammar-summary{padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--navy);display:flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state svg{width:48px;height:48px;margin:0 auto 16px;opacity:.3}
+.empty-state h3{font-size:16px;color:var(--navy);font-family:var(--font-serif);margin-bottom:4px}
+.empty-state p{font-size:13px}
+
+/* ===== SAMPLE BUTTON ===== */
+.sample-btn{font-size:12px;color:var(--navy);cursor:pointer;text-decoration:underline;font-weight:500}
+.sample-btn:hover{color:var(--amber)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .topbar{padding:0 14px;gap:8px}
+  .tabs{order:3;width:100%;justify-content:center}
+  .topbar{flex-wrap:wrap;height:auto;padding:10px 14px}
+  .main{padding:16px}
+  .controls-bar{gap:8px}
+}
+
+/* ===== DOCUMENT EXTRACTOR & BATCH ===== */
+.doc-mode-wrap{display:none;flex-direction:column;gap:16px}
+.doc-mode-wrap.show{display:flex}
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);background:var(--bg2);padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--amber);background:#fffdf9}
+.drop-zone-icon{width:48px;height:48px;margin:0 auto 12px;color:var(--navy);display:flex;align-items:center;justify-content:center}
+.drop-zone-icon svg{width:38px;height:38px}
+.drop-zone-title{font-size:16px;font-weight:700;color:var(--navy);font-family:var(--font-serif);margin-bottom:4px}
+.drop-zone-desc{font-size:13px;color:var(--text3)}
+
+.doc-summary-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.doc-summary-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.doc-filename{font-size:15px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px;font-family:var(--font-serif)}
+.doc-meta-pills{display:flex;flex-wrap:wrap;gap:8px}
+.doc-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;font-family:var(--mono)}
+.pill-prose{background:rgba(252,163,17,.12);color:#b45309;border:1px solid rgba(252,163,17,.35)}
+.pill-table{background:rgba(20,33,61,.08);color:var(--navy);border:1px solid rgba(20,33,61,.2)}
+.pill-figure{background:#f3f4f6;color:var(--navy);border:1px solid var(--border)}
+.pill-toc{background:rgba(252,163,17,.18);color:#92400e;border:1px solid rgba(252,163,17,.4)}
+.pill-heading{background:var(--bg3);color:#000000;border:1px solid var(--border)}
+
+.inspector-container{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.inspector-header{padding:12px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;color:var(--navy);font-family:var(--font-serif)}
+.inspector-list{max-height:360px;overflow-y:auto;display:flex;flex-direction:column}
+.inspector-item{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;font-size:13px;transition:background .15s}
+.inspector-item:hover{background:var(--bg3)}
+.inspector-item:last-child{border-bottom:none}
+.inspector-item-cb{margin-top:3px;cursor:pointer;accent-color:var(--navy)}
+.inspector-item-body{flex:1;overflow:hidden}
+.inspector-item-meta{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.inspector-preview{color:var(--text3);font-size:12px;line-height:1.6;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.progress-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow)}
+.progress-bar-bg{width:100%;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--amber));width:0%;transition:width .3s}
+.progress-status-row{display:flex;justify-content:space-between;font-size:12px;color:var(--navy);font-weight:600;font-family:var(--mono)}
+
+.doc-output-container{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.doc-output-header{display:flex;align-items:center;justify-content:space-between}
+.doc-output-header span{font-family:var(--font-serif);font-size:15px;font-weight:700;color:var(--navy)}
+.doc-output-area{min-height:240px;max-height:480px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:16px;font-size:13.5px;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--text)}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="doc_parser.js"></script>
+<script src="fidelity_guard.js"></script>
+</head>
+<body>
+
+<div class="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <div class="logo-icon">H</div>
+        <span class="logo-text">Humanly</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tool="humanizer">Humanizer</button>
+      <button class="tab" data-tool="detector">AI Detector</button>
+      <button class="tab" data-tool="grammar">Grammar Checker</button>
+    </div>
+    <div class="topbar-right">
+      <div class="word-balance">
+        <div class="dot"></div>
+        <span><span id="wordsRemaining">500</span> words left today</span>
+      </div>
+      <button class="btn-ghost" onclick="loadSample()">Try a sample</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="container">
+
+      <!-- ===== HUMANIZER ===== -->
+      <div id="humanizerView" class="tool-view">
+        <div class="tool-header">
+          <h1 class="tool-title">AI Humanizer</h1>
+          <p class="tool-desc">Default engine is the real 12B model (Gemma 4, Apache 2.0) served from its public Space. It returns its own fidelity report. An offline rule engine is available as a fallback. The detector is always an independent read — never a rewrite target.</p>
+        </div>
+
+        <div class="humanizer-layout">
+          <!-- Input Mode Switcher -->
+          <div class="mode-switch-bar">
+            <button class="mode-btn active" id="modeSnippetBtn" onclick="switchInputMode('snippet')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Text Snippet Mode
+            </button>
+            <button class="mode-btn" id="modeDocBtn" onclick="switchInputMode('document')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              Document Extractor & Batch Mode (.docx, .pdf, .txt, .md)
+            </button>
+          </div>
+
+          <!-- Controls -->
+          <div class="controls-bar">
+            <div class="control-group">
+              <span class="control-label">Engine</span>
+              <select class="select" id="engine" onchange="onEngineChange()">
+                <option value="model" selected>12B model (hosted)</option>
+                <option value="local-server">Local 12B server (127.0.0.1:8080)</option>
+                <option value="local">Local rules (offline)</option>
+              </select>
+              <button class="btn btn-secondary" id="startModelBtn" onclick="toggleLocalModelService()" style="display:none;padding:5px 12px;font-size:12px;gap:6px">
+                <span id="startModelBtnIcon">⚡</span>
+                <span id="startModelBtnLabel">Start 12B Model</span>
+              </button>
+              <span id="serverStatusBadge" style="display:none;font-size:11px;padding:3px 8px;border-radius:12px;font-weight:600;font-family:var(--mono)"></span>
+              <button class="icon-btn" onclick="setToken()" title="Optional Hugging Face token for higher quota">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.7 1.7 0 008 19.4a1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H2a2 2 0 110-4h.1A1.7 1.7 0 003.6 8a1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H8a1.7 1.7 0 001-1.5V2a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V8a1.7 1.7 0 001.5 1H22a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+              </button>
+            </div>
+            <div class="divider-v local-only"></div>
+            <div class="control-group local-only">
+              <span class="control-label">Strength</span>
+              <select class="select" id="strength">
+                <option value="light">Light</option>
+                <option value="standard" selected>Standard</option>
+                <option value="enhanced">Enhanced</option>
+              </select>
+            </div>
+            <div class="divider-v local-only"></div>
+            <div class="control-group local-only">
+              <span class="control-label">Tone</span>
+              <select class="select" id="tone">
+                <option value="natural" selected>Natural</option>
+                <option value="casual">Casual</option>
+                <option value="academic">Academic</option>
+                <option value="business">Business</option>
+              </select>
+            </div>
+            <div class="divider-v local-only"></div>
+            <div class="control-group local-only">
+              <span class="control-label">Language</span>
+              <select class="select" id="language">
+                <option value="en" selected>English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="pt">Portuguese</option>
+                <option value="it">Italian</option>
+                <option value="nl">Dutch</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="zh">Chinese</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Snippet Mode Panels -->
+          <div id="snippetModeWrap">
+            <div class="panels">
+              <!-- Input -->
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-label">Input Text</span>
+                  <div class="panel-actions">
+                    <span class="word-count"><span class="num" id="inputWords">0</span> / 500</span>
+                    <button class="icon-btn" onclick="clearInput()" title="Clear">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="textarea-wrap">
+                  <textarea id="inputText" placeholder="Paste your AI-generated text here...&#10;&#10;Tip: Try a sample to see how it works." oninput="updateWordCount()"></textarea>
+                </div>
+              </div>
+
+              <!-- Output -->
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-label">Humanized Output</span>
+                  <div class="panel-actions">
+                    <span id="outputScore"></span>
+                    <button class="icon-btn" onclick="copyOutput()" title="Copy" id="copyBtn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="output-area empty" id="outputArea">
+                  Your humanized text will appear here.
+                </div>
+              </div>
+            </div>
+
+            <!-- Model fidelity report -->
+            <div class="fidelity-card" id="fidelityCard" style="display:none">
+              <div class="fidelity-title">Model fidelity report <span class="engine-badge" id="engineBadge">12B · Gemma 4</span></div>
+              <div class="fidelity-grid">
+                <div><span class="k">Verbatim copy rate</span><span class="v" id="fCopy">—</span></div>
+                <div><span class="k">Numbers missing</span><span class="v" id="fMissing">—</span></div>
+                <div><span class="k">Numbers added</span><span class="v" id="fAdded">—</span></div>
+                <div><span class="k">Tokens / seconds</span><span class="v" id="fTokens">—</span></div>
+              </div>
+              <div class="fidelity-note">These checks come from the model's own output. Proofread every number, date and the direction of every claim — the authors report dropped qualifiers in roughly 1 in 3 outputs.</div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar" style="margin-top:16px">
+              <div class="action-left">
+                <button class="btn btn-secondary" onclick="detectFromInput()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  Check AI Score
+                </button>
+              </div>
+              <button class="btn btn-primary" id="humanizeBtn" onclick="humanize()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                Humanize
+              </button>
+            </div>
+          </div>
+
+          <!-- Document Mode Wrap -->
+          <div id="docModeWrap" class="doc-mode-wrap">
+            <!-- Dropzone -->
+            <div class="drop-zone" id="docDropZone" onclick="document.getElementById('docFileInput').click()">
+              <input type="file" id="docFileInput" style="display:none" accept=".docx,.pdf,.txt,.md" onchange="onFileChosen(event)">
+              <div class="drop-zone-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <div class="drop-zone-title" id="dropTitle">Drop Word (.docx), PDF (.pdf), or Text (.txt, .md) here</div>
+              <div class="drop-zone-desc" id="dropDesc">Parses long documents, classifies tables/TOC/figures, and filters Turnitin non-prose</div>
+            </div>
+
+            <!-- Doc Summary & Classification Pills -->
+            <div class="doc-summary-card" id="docSummaryCard" style="display:none">
+              <div class="doc-summary-header">
+                <div class="doc-filename">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span id="docFileNameLabel">—</span>
+                  <span style="font-size:12px;font-weight:normal;color:var(--text3)" id="docFileSizeLabel"></span>
+                </div>
+                <div class="doc-meta-pills" id="docMetaPills"></div>
+              </div>
+            </div>
+
+            <!-- Interactive Document Inspector -->
+            <div class="inspector-container" id="docInspectorCard" style="display:none">
+              <div class="inspector-header">
+                <span>Document Inspector & Section Filter</span>
+                <span style="font-size:12px;color:var(--text3)">Check items to humanize; uncheck to preserve</span>
+              </div>
+              <div class="inspector-list" id="docInspectorList"></div>
+            </div>
+
+            <!-- Batch Action Bar -->
+            <div class="controls-bar" id="docBatchControls" style="display:none">
+              <div class="control-group">
+                <span class="control-label">Reassembly</span>
+                <select class="select" id="docReassembleMode">
+                  <option value="clean-prose" selected>Clean Prose Only (Turnitin Ready)</option>
+                  <option value="full-doc">Full Document (Keep Tables & TOC)</option>
+                </select>
+              </div>
+              <div class="divider-v"></div>
+              <div class="control-group">
+                <span class="control-label">Chunk Size</span>
+                <span style="font-size:12px;color:var(--text2)">~350 words / chunk</span>
+              </div>
+              <div style="flex:1"></div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-secondary" id="docPauseBtn" onclick="toggleDocPause()" style="display:none">Pause</button>
+                <button class="btn btn-secondary" id="docCancelBtn" onclick="cancelDocProcess()" style="display:none">Cancel</button>
+                <button class="btn btn-primary" id="docStartBtn" onclick="startDocHumanize()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Humanize Document
+                </button>
+              </div>
+            </div>
+
+            <!-- Progress Card -->
+            <div class="progress-card" id="docProgressCard" style="display:none">
+              <div class="progress-status-row">
+                <span id="docProgressLabel">Processing...</span>
+                <span id="docProgressPct">0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="docProgressBar"></div>
+              </div>
+            </div>
+
+            <!-- Reassembled Output Container -->
+            <div class="doc-output-container" id="docOutputCard" style="display:none">
+              <div class="doc-output-header">
+                <span style="font-size:13px;font-weight:600;color:var(--text2)">Humanized Document Stream</span>
+                <div style="display:flex;gap:8px">
+                  <button class="btn-ghost" onclick="copyDocOutput()">Copy Text</button>
+                  <button class="btn-ghost" onclick="exportDocAsText()">Export .txt</button>
+                  <button class="btn-ghost" onclick="exportDocAsWord()">Export .docx</button>
+                </div>
+              </div>
+              <div class="doc-output-area" id="docOutputArea">Processing output will stream here...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DETECTOR ===== -->
+      <div id="detectorView" class="tool-view" style="display:none">
+        <div class="tool-header">
+          <h1 class="tool-title">AI Detector</h1>
+          <p class="tool-desc">Scores are lower-clipped before aggregation, following Li et al. (2026), so a few edited sentences cannot erase the rest of the evidence. Detection is impossible once contamination is large enough — treat the percentage as a signal, not proof.</p>
+        </div>
+
+        <div class="detector-layout">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-label">Text to Analyze</span>
+              <div class="panel-actions">
+                <span class="word-count"><span class="num" id="detectWords">0</span> / 1000</span>
+                <button class="icon-btn" onclick="document.getElementById('detectText').value='';updateDetectWords()" title="Clear">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="textarea-wrap">
+              <textarea id="detectText" placeholder="Paste text to check for AI signals..." oninput="updateDetectWords()" style="min-height:200px"></textarea>
+            </div>
+          </div>
+
+          <div class="action-bar">
+            <div></div>
+            <button class="btn btn-primary" id="detectBtn" onclick="runDetection()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              Scan for AI
+            </button>
+          </div>
+
+          <div class="detector-result" id="detectorResult">
+            <!-- Score Card -->
+            <div class="score-card">
+              <div class="score-circle">
+                <svg viewBox="0 0 120 120">
+                  <circle class="track" cx="60" cy="60" r="52"/>
+                  <circle class="fill" id="scoreRing" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+                </svg>
+                <div class="score-value">
+                  <span class="pct" id="detectPct">0%</span>
+                  <span class="label" id="detectLabel">Analyzing...</span>
+                </div>
+              </div>
+              <div class="score-status" id="detectStatus">--</div>
+              <div class="score-meta" id="detectMeta"></div>
+            </div>
+
+            <!-- Detail Card -->
+            <div class="detail-card">
+              <div class="detail-title">Sentence-level Analysis</div>
+              <div class="sentence-list" id="sentenceList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== GRAMMAR ===== -->
+      <div id="grammarView" class="tool-view" style="display:none">
+        <div class="tool-header">
+          <h1 class="tool-title">Grammar Checker</h1>
+          <p class="tool-desc">Check your text for grammar, spelling, and style issues. Click a suggestion to apply it instantly.</p>
+        </div>
+
+        <div class="grammar-layout">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-label">Text to Check</span>
+              <div class="panel-actions">
+                <span class="word-count"><span class="num" id="grammarWords">0</span> words</span>
+              </div>
+            </div>
+            <div class="textarea-wrap">
+              <textarea id="grammarText" placeholder="Paste text to check grammar..." oninput="updateGrammarWords()" style="min-height:200px"></textarea>
+            </div>
+          </div>
+
+          <div class="action-bar">
+            <div></div>
+            <button class="btn btn-primary" id="grammarBtn" onclick="checkGrammar()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              Check Grammar
+            </button>
+          </div>
+
+          <div id="grammarSummary" class="grammar-summary" style="display:none"></div>
+          <div class="grammar-results" id="grammarResults"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Processing Overlay -->
+<div class="processing-overlay" id="procOverlay">
+  <div class="processing-box">
+    <div style="font-size:16px;font-weight:600" id="procTitle">Humanizing your text...</div>
+    <div class="processing-steps" id="procSteps"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  HUMANLY — AI Humanizer & Detector
+//  Client-side text humanization engine
+// ============================================================
+
+// ===== STATE =====
+const STATE = {
+  remaining: 500,
+  currentTool: 'humanizer',
+  humanizedText: '',
+  detectorResult: null,
+  grammarIssues: [],
+  hfToken: null
+};
+
+// Held in memory only — never written to storage or sent anywhere but the Space.
+function setToken() {
+  const current = STATE.hfToken ? 'hf_…' + STATE.hfToken.slice(-4) : 'none';
+  const value = prompt(
+    'Optional Hugging Face token (raises the Space quota).\n' +
+    'Current: ' + current + '\n\nLeave blank to clear. Stored in memory only.',
+    ''
+  );
+  if (value === null) return;
+  STATE.hfToken = value.trim() || null;
+  alert(STATE.hfToken ? 'Token set for this session.' : 'Token cleared.');
+}
+
+// ===== REAL MODEL CLIENT =====
+// jialinyyzz/humanizer — a 12B Gemma 4 rewrite model. Public Gradio Space API.
+// The model's own API returns fidelity metadata; a detector is never involved.
+const MODEL = {
+  base: 'https://jialinyyzz-humanizer.hf.space',
+  instr: 'Rewrite the text below so it reads like a person wrote it, not a language model.\n\nReorganize it as you see fit. Vary sentence length on purpose. Cut hedging,\nthroat-clearing, and any sentence that only announces what comes next.\nPrefer the concrete word over the abstract one. It is fine to sound uneven.\n\nEvery fact, number, unit, date, name and quotation must survive unchanged.',
+  sep: '\n\n### Rewritten:\n\n',
+  fingerprint: 'cc51d66b4c593fbe'
+};
+
+// Used only for the offline llama.cpp path; the hosted Space takes raw drafts.
+function buildCompletionPrompt(draft) {
+  return MODEL.instr + '\n\n' + draft.trim() + MODEL.sep;
+}
+
+async function callHumanizerModel(draft, timeoutMs = 240000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const headers = { 'Content-Type': 'application/json' };
+  if (STATE.hfToken) headers['Authorization'] = 'Bearer ' + STATE.hfToken;
+  try {
+    const res = await fetch(MODEL.base + '/gradio_api/call/v2/humanize', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ draft: draft }),
+      signal: controller.signal
+    });
+    if (!res.ok) throw new Error('Model request failed (HTTP ' + res.status + ')');
+    const started = await res.json();
+    const eventId = started.event_id;
+    if (!eventId) throw new Error('Model returned no event id');
+
+    const stream = await fetch(
+      MODEL.base + '/gradio_api/call/humanize/' + encodeURIComponent(eventId),
+      { signal: controller.signal, headers: STATE.hfToken ? { 'Authorization': 'Bearer ' + STATE.hfToken } : {} }
+    );
+    if (!stream.ok) throw new Error('Result stream failed (HTTP ' + stream.status + ')');
+    if (!stream.body) throw new Error('Streaming responses are unavailable in this browser');
+
+    const reader = stream.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let payload = null;
+    let sawError = false;
+    let errorData = '';
+
+    while (!payload) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('event: error')) sawError = true;
+        if (line.startsWith('data: ')) {
+          const raw = line.slice(6);
+          if (sawError) { errorData = raw; continue; }
+          try { payload = JSON.parse(raw); } catch (e) { /* partial frame */ }
+        }
+      }
+      if (sawError && errorData) {
+        let msg = 'The hosted model returned an error.';
+        try {
+          const err = JSON.parse(errorData);
+          msg = err.error || err.detail || msg;
+        } catch (e) { msg = errorData.slice(0, 160); }
+        if (/quota|limit|authenticate/i.test(msg)) {
+          msg += ' The public Space has a free daily quota. Add a Hugging Face token with the gear button, or switch to Local rules.';
+        }
+        throw new Error(msg);
+      }
+      if (sawError && !errorData) {
+        throw new Error('The hosted model returned an error. Try again or switch to Local rules.');
+      }
+    }
+    if (!payload) throw new Error('Model returned no result');
+
+    const first = Array.isArray(payload) ? payload[0] : payload;
+    if (first && typeof first === 'object' && typeof first.text === 'string') {
+      return {
+        text: first.text,
+        copyRate: first.copy_rate,
+        missingNumbers: first.missing_numbers || [],
+        addedNumbers: first.added_numbers || [],
+        tokens: first.tokens,
+        seconds: first.seconds,
+        truncated: !!first.truncated,
+        languageResampled: first.language_resampled || 0
+      };
+    }
+    // Older Gradio versions may return a bare string.
+    return { text: String(first), copyRate: null, missingNumbers: [], addedNumbers: [] };
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('The hosted model timed out or is still waking up. Try again, or switch to Local rules.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Ensure DocParser is available in node VM (test.js) and browser
+let DocParserModule = (typeof DocParser !== 'undefined') ? DocParser : null;
+if (!DocParserModule && typeof require !== 'undefined') {
+  try { DocParserModule = require('./doc_parser.js'); } catch (e) {}
+}
+if (!DocParserModule && typeof window !== 'undefined' && window.DocParser) {
+  DocParserModule = window.DocParser;
+}
+
+// ===== LOCAL 12B LLAMA.CPP SERVER CLIENT =====
+async function callLocalServer(draft) {
+  const prompt = MODEL.instr + '\n\n' + draft.trim() + MODEL.sep;
+  const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const res = await fetch('http://127.0.0.1:8080/completion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: prompt,
+      temperature: 1.0,
+      top_p: 0.95,
+      top_k: 0,
+      min_p: 0,
+      repeat_penalty: 1.0,
+      n_predict: 2048
+    })
+  });
+
+  if (!res.ok) throw new Error(`Local llama.cpp HTTP ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const text = (data.content || '').trim();
+  const t1 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const seconds = (t1 - t0) / 1000;
+
+  const nums = s => (s.match(/\b\d[\d,.]*\s*(?:%|percent|million|billion|thousand|hours?|days?|years?)?\b/gi) || []).sort();
+  const before = nums(draft);
+  const after = nums(text);
+  const missing = before.filter(n => !after.includes(n));
+  const added = after.filter(n => !before.includes(n));
+
+  return {
+    text,
+    copyRate: computeReuse(draft, text).reuse5Gram,
+    missingNumbers: missing,
+    addedNumbers: added,
+    tokens: data.tokens_predicted || Math.round(countWords(text) * 1.3),
+    seconds
+  };
+}
+
+async function checkLocalServerOnline() {
+  if (typeof fetch === 'undefined') return false;
+  try {
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeout = controller ? setTimeout(() => controller.abort(), 1200) : null;
+    const res = await fetch('http://127.0.0.1:8080/health', { method: 'GET', signal: controller ? controller.signal : undefined });
+    if (timeout) clearTimeout(timeout);
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function onEngineChange() {
+  const engine = document.getElementById('engine').value;
+  const isRule = engine === 'local';
+  document.querySelectorAll('.local-only').forEach(el => {
+    el.style.display = isRule ? '' : 'none';
+  });
+  const badge = document.getElementById('engineBadge');
+  if (badge) {
+    if (engine === 'local-server') badge.textContent = '12B · Local llama.cpp (127.0.0.1:8080)';
+    else if (engine === 'model') badge.textContent = '12B · Gemma 4 (Hosted Space)';
+    else badge.textContent = 'Rule-based Engine (Offline)';
+  }
+  document.getElementById('fidelityCard').style.display = 'none';
+
+  const statusBadge = document.getElementById('serverStatusBadge');
+  const startBtn = document.getElementById('startModelBtn');
+  const startBtnLabel = document.getElementById('startModelBtnLabel');
+  const startBtnIcon = document.getElementById('startModelBtnIcon');
+
+  if (engine === 'local-server') {
+    if (startBtn) startBtn.style.display = 'inline-flex';
+    if (statusBadge) {
+      statusBadge.style.display = 'inline-block';
+      statusBadge.textContent = 'Checking...';
+      statusBadge.style.background = '#f3f4f6';
+      statusBadge.style.color = '#6b7280';
+    }
+    const online = await checkLocalServerOnline();
+    if (online) {
+      if (statusBadge) {
+        statusBadge.textContent = '🟢 Server Online';
+        statusBadge.style.background = 'rgba(21,128,61,.12)';
+        statusBadge.style.color = '#15803d';
+      }
+      if (startBtnLabel) startBtnLabel.textContent = 'Stop 12B Model';
+      if (startBtnIcon) startBtnIcon.textContent = '⏹';
+      if (startBtn) {
+        startBtn.className = 'btn btn-secondary';
+        startBtn.disabled = false;
+      }
+    } else {
+      if (statusBadge) {
+        statusBadge.textContent = '🔴 Server Offline';
+        statusBadge.style.background = 'rgba(220,38,38,.1)';
+        statusBadge.style.color = '#dc2626';
+        statusBadge.title = 'Click Start 12B Model or run run_local.bat on your machine.';
+      }
+      if (!isModelStarting) {
+        if (startBtnLabel) startBtnLabel.textContent = 'Start 12B Model';
+        if (startBtnIcon) startBtnIcon.textContent = '⚡';
+        if (startBtn) {
+          startBtn.className = 'btn btn-primary';
+          startBtn.disabled = false;
+        }
+      }
+    }
+  } else {
+    if (statusBadge) statusBadge.style.display = 'none';
+    if (startBtn) startBtn.style.display = 'none';
+  }
+}
+
+let isModelStarting = false;
+
+async function toggleLocalModelService() {
+  const btn = document.getElementById('startModelBtn');
+  const label = document.getElementById('startModelBtnLabel');
+  const icon = document.getElementById('startModelBtnIcon');
+
+  const isOnline = await checkLocalServerOnline();
+  if (isOnline) {
+    if (label) label.textContent = 'Stopping...';
+    try {
+      await fetch('http://127.0.0.1:3000/api/stop-model', { method: 'POST' });
+    } catch(e) {}
+    await sleep(800);
+    await onEngineChange();
+    return;
+  }
+
+  isModelStarting = true;
+  if (label) label.textContent = 'Starting 12B Model...';
+  if (icon) icon.textContent = '⏳';
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch('http://127.0.0.1:3000/api/start-model', { method: 'POST' });
+    if (!res.ok) throw new Error('API returned HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Failed to start model');
+
+    let waited = 0;
+    const pollInterval = setInterval(async () => {
+      waited += 1000;
+      const online = await checkLocalServerOnline();
+      if (online || waited > 45000) {
+        clearInterval(pollInterval);
+        isModelStarting = false;
+        if (btn) btn.disabled = false;
+        await onEngineChange();
+        if (online) {
+          alert('🟢 Local 12B Gemma model is now loaded into RAM and ready!');
+        } else {
+          alert('Model is taking longer to load. Check console or run_local.bat.');
+        }
+      }
+    }, 1000);
+
+  } catch (err) {
+    isModelStarting = false;
+    if (btn) btn.disabled = false;
+    if (label) label.textContent = 'Start 12B Model';
+    if (icon) icon.textContent = '⚡';
+
+    alert(
+      "⚡ Local Model Launch Helper\n\n" +
+      "The Model Manager is running via server.js or start_app.bat.\n\n" +
+      "To start the model with 1 click in the future:\n" +
+      "  • Run 'start_app.bat' in the project folder.\n\n" +
+      "Or start the model directly right now:\n" +
+      "  • Double-click 'run_local.bat' (or run ./run_local.sh)\n\n" +
+      "The UI will instantly detect the server as soon as it begins listening!"
+    );
+  }
+}
+
+let FidelityGuardModule = (typeof FidelityGuard !== 'undefined') ? FidelityGuard : null;
+if (!FidelityGuardModule && typeof require !== 'undefined') {
+  try { FidelityGuardModule = require('./fidelity_guard.js'); } catch (e) {}
+}
+if (!FidelityGuardModule && typeof window !== 'undefined' && window.FidelityGuard) {
+  FidelityGuardModule = window.FidelityGuard;
+}
+
+function renderFidelity(meta, originalText, rewrittenText) {
+  const card = document.getElementById('fidelityCard');
+  if (!meta && !originalText) {
+    if (card) card.style.display = 'none';
+    return;
+  }
+
+  let report = null;
+  if (FidelityGuardModule && originalText && rewrittenText) {
+    report = FidelityGuardModule.verifyFidelity(originalText, rewrittenText);
+  }
+
+  const copyRate = (meta && meta.copyRate != null)
+    ? meta.copyRate
+    : (computeReuse && originalText && rewrittenText ? computeReuse(originalText, rewrittenText).reuse5Gram : 0);
+  const pct = (copyRate * 100).toFixed(1) + '%';
+
+  const missingList = report ? report.entityDiff.numbers.missing : (meta ? meta.missingNumbers || [] : []);
+  const addedList = report ? report.entityDiff.numbers.added : (meta ? meta.addedNumbers || [] : []);
+
+  const copy = document.getElementById('fCopy');
+  if (copy) {
+    copy.textContent = pct;
+    copy.className = 'v ' + (copyRate < 0.35 ? 'good' : 'bad');
+  }
+
+  const miss = document.getElementById('fMissing');
+  if (miss) {
+    miss.textContent = missingList.length === 0 ? 'none' : missingList.join(', ');
+    miss.className = 'v ' + (missingList.length === 0 ? 'good' : 'bad');
+  }
+
+  const add = document.getElementById('fAdded');
+  if (add) {
+    add.textContent = addedList.length === 0 ? 'none' : addedList.join(', ');
+    add.className = 'v ' + (addedList.length === 0 ? 'good' : 'bad');
+  }
+
+  const tokensEl = document.getElementById('fTokens');
+  if (tokensEl) {
+    tokensEl.textContent =
+      ((meta && meta.tokens != null) ? meta.tokens : countWords(rewrittenText || '')) + ' / ' +
+      ((meta && meta.seconds != null) ? Number(meta.seconds).toFixed(1) + 's' : '—');
+  }
+
+  let banner = document.getElementById('fidelityAlertBanner');
+  if (!banner && card) {
+    banner = document.createElement('div');
+    banner.id = 'fidelityAlertBanner';
+    card.insertBefore(banner, card.firstChild);
+  }
+
+  if (banner) {
+    if (report && !report.passed) {
+      banner.style.display = 'block';
+      banner.style.padding = '10px 14px';
+      banner.style.marginBottom = '12px';
+      banner.style.borderRadius = '6px';
+      banner.style.background = 'rgba(220,38,38,.08)';
+      banner.style.border = '1px solid rgba(220,38,38,.25)';
+      banner.style.color = '#dc2626';
+      banner.style.fontSize = '12px';
+      banner.style.lineHeight = '1.5';
+      banner.innerHTML = `<strong>⚠️ Fidelity Gate Alert:</strong><br>${report.criticalViolations.map(v => escapeHtml(v.message)).join('<br>')}`;
+    } else if (report && report.advisories && report.advisories.length) {
+      banner.style.display = 'block';
+      banner.style.padding = '8px 12px';
+      banner.style.marginBottom = '12px';
+      banner.style.borderRadius = '6px';
+      banner.style.background = 'rgba(252,163,17,.1)';
+      banner.style.border = '1px solid rgba(252,163,17,.3)';
+      banner.style.color = '#b45309';
+      banner.style.fontSize = '12px';
+      banner.innerHTML = `<strong>Notice:</strong> ${report.advisories.map(a => escapeHtml(a.message)).join('; ')}`;
+    } else {
+      banner.style.display = 'block';
+      banner.style.padding = '8px 12px';
+      banner.style.marginBottom = '12px';
+      banner.style.borderRadius = '6px';
+      banner.style.background = 'rgba(21,128,61,.08)';
+      banner.style.border = '1px solid rgba(21,128,61,.25)';
+      banner.style.color = '#15803d';
+      banner.style.fontSize = '12px';
+      banner.innerHTML = `<strong>✓ Factual Integrity Verified:</strong> All numbers, dates, and citations preserved with zero fabrications.`;
+    }
+  }
+
+  if (card) card.style.display = 'block';
+}
+
+// ===== TAB SWITCHING =====
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const tool = tab.dataset.tool;
+    STATE.currentTool = tool;
+    document.querySelectorAll('.tool-view').forEach(v => v.style.display = 'none');
+    document.getElementById(tool + 'View').style.display = 'block';
+  });
+});
+
+// ===== WORD COUNTING =====
+function countWords(text) {
+  if (!text || !text.trim()) return 0;
+  return text.trim().split(/\s+/).length;
+}
+
+function updateWordCount() {
+  const words = countWords(document.getElementById('inputText').value);
+  const el = document.getElementById('inputWords');
+  el.textContent = words;
+  if (words > 500) el.classList.add('over'); else el.classList.remove('over');
+  document.getElementById('humanizeBtn').disabled = words === 0 || words > 500;
+}
+
+function updateDetectWords() {
+  const words = countWords(document.getElementById('detectText').value);
+  document.getElementById('detectWords').textContent = words;
+  document.getElementById('detectBtn').disabled = words === 0;
+}
+
+function updateGrammarWords() {
+  const words = countWords(document.getElementById('grammarText').value);
+  document.getElementById('grammarWords').textContent = words;
+  document.getElementById('grammarBtn').disabled = words === 0;
+}
+
+// ===== CLEAR / SAMPLE =====
+function clearInput() {
+  document.getElementById('inputText').value = '';
+  updateWordCount();
+  document.getElementById('outputArea').textContent = 'Your humanized text will appear here.';
+  document.getElementById('outputArea').classList.add('empty');
+  document.getElementById('outputScore').innerHTML = '';
+  STATE.humanizedText = '';
+}
+
+const SAMPLE_TEXT = `Artificial intelligence has emerged as one of the most transformative technologies of the twenty-first century, fundamentally reshaping how we approach problem-solving across various domains. Furthermore, the integration of machine learning algorithms into everyday applications has demonstrated remarkable capabilities in areas such as natural language processing, computer vision, and predictive analytics. Moreover, these advancements have significant implications for industries ranging from healthcare to finance, where AI-driven solutions are increasingly being deployed to enhance efficiency and accuracy. Additionally, it is important to note that the continued evolution of these technologies will likely yield even more sophisticated capabilities in the years to come. Consequently, organizations that fail to adapt to this changing landscape may find themselves at a competitive disadvantage. In conclusion, the widespread adoption of artificial intelligence represents a paradigm shift that will continue to influence the trajectory of technological progress for the foreseeable future.`;
+
+function loadSample() {
+  if (STATE.currentTool === 'humanizer') {
+    document.getElementById('inputText').value = SAMPLE_TEXT;
+    updateWordCount();
+  } else if (STATE.currentTool === 'detector') {
+    document.getElementById('detectText').value = SAMPLE_TEXT;
+    updateDetectWords();
+  } else if (STATE.currentTool === 'grammar') {
+    document.getElementById('grammarText').value = "Their are many reasons why this aproach wont work. Its important to note that the affects of this desicion will be felt for years to come. The team has been working on this project for along time, and they has made significant progress. However, their are still some issues that needs to be addresed before we can proceed. Me and him will review the document tommorow.";
+    updateGrammarWords();
+  }
+}
+
+// ===== COPY =====
+function copyOutput() {
+  if (!STATE.humanizedText) return;
+  navigator.clipboard.writeText(STATE.humanizedText);
+  const btn = document.getElementById('copyBtn');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+  setTimeout(() => {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+  }, 1500);
+}
+
+// ===== PROCESSING STEPS =====
+const HUMANIZE_STEPS = [
+  'Reading your text',
+  'Finding AI patterns',
+  'Rewriting phrases',
+  'Checking your meaning',
+  'Running a final scan'
+];
+
+async function showProcessing(title, steps, until) {
+  const overlay = document.getElementById('procOverlay');
+  document.getElementById('procTitle').textContent = title;
+  const container = document.getElementById('procSteps');
+  container.innerHTML = steps.map((s, i) => `
+    <div class="proc-step ${i === 0 ? 'active' : 'pending'}" data-step="${i}">
+      <div class="step-icon">${i === 0 ? '<div class="spinner"></div>' : '<div class="dot"></div>'}</div>
+      <span>${s}</span>
+    </div>
+  `).join('');
+  overlay.classList.add('show');
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = container.querySelector(`[data-step="${i}"]`);
+    step.classList.remove('pending');
+    step.classList.add('active');
+    step.querySelector('.step-icon').innerHTML = '<div class="spinner"></div>';
+    await sleep(350 + Math.random() * 200);
+    step.classList.remove('active');
+    step.classList.add('done');
+    step.querySelector('.step-icon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+    if (i < steps.length - 1) {
+      const next = container.querySelector(`[data-step="${i+1}"]`);
+      next.classList.remove('pending');
+      next.classList.add('active');
+      next.querySelector('.step-icon').innerHTML = '<div class="spinner"></div>';
+    }
+  }
+  // Hold the overlay until the real model call finishes, however long it takes.
+  if (until) {
+    try { await until; } catch (e) { /* surfaced by the caller */ }
+  }
+  await sleep(300);
+  overlay.classList.remove('show');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+//  HUMANIZER ENGINE
+// ============================================================
+
+const MODEL_STEPS = [
+  'Connecting to the 12B model',
+  'Sending your draft',
+  'Rewriting with Gemma 4',
+  'Checking number fidelity',
+  'Returning your rewrite'
+];
+
+async function humanize() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) return;
+  const words = countWords(text);
+  if (words > 500) return;
+
+  const engine = document.getElementById('engine').value;
+  const button = document.getElementById('humanizeBtn');
+  button.disabled = true;
+
+  const isModel = engine === 'model';
+  const isLocalServer = engine === 'local-server';
+  const isNeural = isModel || isLocalServer;
+
+  // Start the network call immediately so it runs behind the animation.
+  const modelCall = isModel
+    ? callHumanizerModel(text).catch(err => ({ __error: err }))
+    : isLocalServer
+    ? callLocalServer(text).catch(err => ({ __error: err }))
+    : null;
+
+  await showProcessing(
+    isNeural ? (isLocalServer ? 'Rewriting with local 12B model...' : 'Rewriting with hosted 12B model...') : 'Humanizing your text...',
+    isNeural ? MODEL_STEPS : HUMANIZE_STEPS,
+    modelCall
+  );
+
+  try {
+    let result;
+    if (isNeural) {
+      const meta = await modelCall;
+      if (meta && meta.__error) throw meta.__error;
+      result = meta.text;
+      STATE.humanizedText = result;
+      renderFidelity(meta, text, result);
+      const badgeText = isLocalServer ? '12B Local' : '12B Hosted';
+      document.getElementById('outputScore').innerHTML =
+        `<span class="score-badge human"><div class="dot" style="background:#22c55e"></div>${badgeText}</span>`;
+      document.getElementById('outputScore').title =
+        `Rewritten by ${isLocalServer ? 'local llama.cpp server' : 'jialinyyzz/humanizer (12B hosted)'}.`;
+    } else {
+      const strength = document.getElementById('strength').value;
+      const tone = document.getElementById('tone').value;
+      result = humanizeText(text, strength, tone);
+      STATE.humanizedText = result;
+      renderFidelity(null, text, result);
+
+      // Independent external read only — never fed into the rewrite.
+      const score = detectAI(result);
+      const badge = score.aiScore < 30
+        ? `<span class="score-badge human"><div class="dot" style="background:#22c55e"></div>${score.humanScore}% Human</span>`
+        : `<span class="score-badge ai"><div class="dot" style="background:#ef4444"></div>${score.aiScore}% AI</span>`;
+      document.getElementById('outputScore').innerHTML = badge;
+      document.getElementById('outputScore').title =
+        'Independent detector read. The humanizer does not optimise against this score.';
+    }
+
+    if (isNeural && result.trim().toLowerCase() === text.trim().toLowerCase()) {
+      throw new Error('The model returned the draft unchanged. Try again.');
+    }
+
+    const output = document.getElementById('outputArea');
+    output.classList.remove('empty');
+    output.innerHTML = escapeHtml(result);
+
+    STATE.remaining -= words;
+    document.getElementById('wordsRemaining').textContent = Math.max(0, STATE.remaining);
+  } catch (err) {
+    const output = document.getElementById('outputArea');
+    output.classList.remove('empty');
+    const isLocalRefused = (engine === 'local-server') && /fetch|network|refused|abort/i.test(err.message || String(err));
+    if (isLocalRefused) {
+      output.innerHTML = '<strong style="color:#dc2626">Local server connection refused.</strong><br>' +
+        'The llama.cpp server is not running on <code>127.0.0.1:8080</code>.<br><br>' +
+        '<strong>To run the local 12B model:</strong><br>' +
+        '• Double-click <code>run_local.bat</code> (or run <code>./run_local.sh</code>) in the project folder.<br><br>' +
+        'Or switch Engine to <em>12B model (hosted)</em> or <em>Local rules (offline)</em>.';
+    } else {
+      output.innerHTML = '<strong style="color:#dc2626">Rewrite failed.</strong> ' +
+        escapeHtml(err.message || String(err)) +
+        '<br><br>Switch Engine to <em>Local rules (offline)</em> to rewrite without the 12B model.';
+    }
+    document.getElementById('fidelityCard').style.display = 'none';
+    document.getElementById('outputScore').innerHTML = '';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// ============================================================
+//  DOCUMENT EXTRACTOR & BATCH HUMANIZER
+// ============================================================
+
+const DOC_STATE = {
+  activeMode: 'snippet',
+  currentFile: null,
+  fileName: '',
+  fileSize: 0,
+  blocks: [],
+  chunks: [],
+  activeChunkIndex: -1,
+  isRunning: false,
+  isPaused: false,
+  reassembleMode: 'clean-prose',
+  fullOutputText: ''
+};
+
+function switchInputMode(mode) {
+  DOC_STATE.activeMode = mode;
+  const snippetBtn = document.getElementById('modeSnippetBtn');
+  const docBtn = document.getElementById('modeDocBtn');
+  const snippetWrap = document.getElementById('snippetModeWrap');
+  const docWrap = document.getElementById('docModeWrap');
+
+  if (mode === 'document') {
+    if (snippetBtn) snippetBtn.classList.remove('active');
+    if (docBtn) docBtn.classList.add('active');
+    if (snippetWrap) snippetWrap.style.display = 'none';
+    if (docWrap) docWrap.classList.add('show');
+  } else {
+    if (docBtn) docBtn.classList.remove('active');
+    if (snippetBtn) snippetBtn.classList.add('active');
+    if (docWrap) docWrap.classList.remove('show');
+    if (snippetWrap) snippetWrap.style.display = 'block';
+  }
+}
+
+// Setup drag and drop
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    const dz = document.getElementById('docDropZone');
+    if (!dz) return;
+    ['dragenter', 'dragover'].forEach(name => {
+      dz.addEventListener(name, e => { e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(name => {
+      dz.addEventListener(name, e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover'); });
+    });
+    dz.addEventListener('drop', e => {
+      const dt = e.dataTransfer;
+      if (dt && dt.files && dt.files.length) {
+        handleFileSelect(dt.files[0]);
+      }
+    });
+  });
+}
+
+function onFileChosen(event) {
+  const file = event.target.files && event.target.files[0];
+  if (file) handleFileSelect(file);
+}
+
+async function handleFileSelect(file) {
+  DOC_STATE.currentFile = file;
+  DOC_STATE.fileName = file.name;
+  DOC_STATE.fileSize = file.size;
+
+  const dropTitle = document.getElementById('dropTitle');
+  if (dropTitle) dropTitle.textContent = 'Loading and parsing ' + file.name + '...';
+
+  try {
+    let blocks = [];
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (ext === 'docx') {
+      const arrayBuffer = await file.arrayBuffer();
+      if (typeof mammoth !== 'undefined') {
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        blocks = DocParserModule.parseHtml(result.value);
+      } else {
+        const text = await file.text();
+        blocks = DocParserModule.parseText(text);
+      }
+    } else if (ext === 'pdf') {
+      const arrayBuffer = await file.arrayBuffer();
+      if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const pageTexts = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageStr = content.items.map(it => it.str).join(' ');
+          pageTexts.push(pageStr);
+        }
+        blocks = DocParserModule.parseText(pageTexts.join('\n\n'));
+      } else {
+        throw new Error('PDF.js library is loading. Please try again in a moment.');
+      }
+    } else {
+      const text = await file.text();
+      blocks = DocParserModule.parseText(text);
+    }
+
+    DOC_STATE.blocks = blocks;
+    if (dropTitle) dropTitle.textContent = file.name;
+    const dropDesc = document.getElementById('dropDesc');
+    if (dropDesc) dropDesc.textContent = 'Parsed ' + blocks.length + ' structural blocks (' + (file.size / 1024).toFixed(1) + ' KB)';
+    
+    renderDocInspector();
+  } catch (err) {
+    if (dropTitle) dropTitle.textContent = 'Failed to load ' + file.name;
+    const dropDesc = document.getElementById('dropDesc');
+    if (dropDesc) dropDesc.textContent = 'Error: ' + err.message;
+    console.error(err);
+  }
+}
+
+function renderDocInspector() {
+  const blocks = DOC_STATE.blocks;
+  if (!blocks || !blocks.length) return;
+
+  const summary = document.getElementById('docSummaryCard');
+  const inspector = document.getElementById('docInspectorCard');
+  const batchControls = document.getElementById('docBatchControls');
+  if (summary) summary.style.display = 'flex';
+  if (inspector) inspector.style.display = 'block';
+  if (batchControls) batchControls.style.display = 'flex';
+
+  const fnEl = document.getElementById('docFileNameLabel');
+  if (fnEl) fnEl.textContent = DOC_STATE.fileName;
+  const fsEl = document.getElementById('docFileSizeLabel');
+  if (fsEl) fsEl.textContent = '(' + (DOC_STATE.fileSize / 1024).toFixed(1) + ' KB)';
+
+  const proseBlocks = blocks.filter(b => b.type === 'prose');
+  const tableBlocks = blocks.filter(b => b.type === 'table');
+  const figBlocks = blocks.filter(b => b.type === 'figure');
+  const tocBlocks = blocks.filter(b => b.type === 'toc');
+  const headBlocks = blocks.filter(b => b.type === 'heading');
+
+  const pillsContainer = document.getElementById('docMetaPills');
+  if (pillsContainer) {
+    pillsContainer.innerHTML = `
+      <span class="doc-pill pill-prose">📝 ${proseBlocks.length} Prose Chunks (${proseBlocks.reduce((a, b) => a + b.wordCount, 0)} words)</span>
+      <span class="doc-pill pill-table">📊 ${tableBlocks.length} Tables (Preserved)</span>
+      <span class="doc-pill pill-figure">🖼️ ${figBlocks.length} Figures (Preserved)</span>
+      <span class="doc-pill pill-toc">📑 ${tocBlocks.length} TOC (Preserved)</span>
+      <span class="doc-pill pill-heading">📌 ${headBlocks.length} Headings (Preserved)</span>
+    `;
+  }
+
+  const listContainer = document.getElementById('docInspectorList');
+  if (listContainer) {
+    listContainer.innerHTML = blocks.map((b) => {
+      let pillClass = 'pill-heading';
+      let icon = '📌';
+      if (b.type === 'prose') { pillClass = 'pill-prose'; icon = '📝'; }
+      else if (b.type === 'table') { pillClass = 'pill-table'; icon = '📊'; }
+      else if (b.type === 'figure') { pillClass = 'pill-figure'; icon = '🖼️'; }
+      else if (b.type === 'toc') { pillClass = 'pill-toc'; icon = '📑'; }
+
+      const isChecked = b.includedForHumanize ? 'checked' : '';
+      const statusText = b.status === 'done' ? '✓ Completed' : b.status === 'processing' ? '⏳ Rewriting...' : (b.includedForHumanize ? 'Queued' : 'Preserved');
+
+      return `
+        <div class="inspector-item" id="item_${b.id}">
+          <input type="checkbox" class="inspector-item-cb" ${isChecked} onchange="toggleBlockInclusion('${b.id}', this.checked)">
+          <div class="inspector-item-body">
+            <div class="inspector-item-meta">
+              <span class="doc-pill ${pillClass}">${icon} ${b.label}</span>
+              <span style="font-size:11px;color:var(--text3)">${b.wordCount} words</span>
+              <span style="font-size:11px;color:var(--text2);margin-left:auto" id="status_${b.id}">${statusText}</span>
+            </div>
+            <div class="inspector-preview">${escapeHtml(b.rawContent.slice(0, 180))}${b.rawContent.length > 180 ? '...' : ''}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function toggleBlockInclusion(blockId, isIncluded) {
+  const block = DOC_STATE.blocks.find(b => b.id === blockId);
+  if (block) {
+    block.includedForHumanize = isIncluded;
+    block.status = isIncluded ? 'queued' : 'preserved';
+    const statusEl = document.getElementById('status_' + blockId);
+    if (statusEl) statusEl.textContent = isIncluded ? 'Queued' : 'Preserved';
+  }
+}
+
+function onReassembleModeChange() {
+  const el = document.getElementById('docReassembleMode');
+  if (el) DOC_STATE.reassembleMode = el.value;
+  if (DOC_STATE.chunks && DOC_STATE.chunks.length) {
+    updateDocOutputArea();
+  }
+}
+
+async function startDocHumanize() {
+  if (DOC_STATE.isRunning) return;
+
+  const blocks = DOC_STATE.blocks;
+  if (!blocks || !blocks.length) return;
+
+  const chunks = DocParserModule.createChunks(blocks, 250, 450);
+  if (!chunks.length) {
+    alert('No prose blocks selected for humanization.');
+    return;
+  }
+
+  DOC_STATE.chunks = chunks;
+  DOC_STATE.isRunning = true;
+  DOC_STATE.isPaused = false;
+  DOC_STATE.activeChunkIndex = 0;
+
+  const startBtn = document.getElementById('docStartBtn');
+  const pauseBtn = document.getElementById('docPauseBtn');
+  const cancelBtn = document.getElementById('docCancelBtn');
+  const progressCard = document.getElementById('docProgressCard');
+  const outputCard = document.getElementById('docOutputCard');
+
+  const engine = document.getElementById('engine').value;
+  const strength = document.getElementById('strength').value;
+  const tone = document.getElementById('tone').value;
+
+  if (engine === 'local-server') {
+    const isOnline = await checkLocalServerOnline();
+    if (!isOnline) {
+      alert("⚠️ Local 12B server is offline (127.0.0.1:8080).\n\nPlease start the local server by running:\n  run_local.bat  (or ./run_local.sh)\n\nOr switch Engine to '12B model (hosted)' or 'Local rules (offline)'.");
+      DOC_STATE.isRunning = false;
+      return;
+    }
+  }
+
+  if (startBtn) startBtn.style.display = 'none';
+  if (pauseBtn) pauseBtn.style.display = 'inline-flex';
+  if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+  if (progressCard) progressCard.style.display = 'flex';
+  if (outputCard) outputCard.style.display = 'flex';
+
+  for (let i = 0; i < chunks.length; i++) {
+    if (!DOC_STATE.isRunning) break;
+
+    while (DOC_STATE.isPaused && DOC_STATE.isRunning) {
+      await sleep(300);
+    }
+    if (!DOC_STATE.isRunning) break;
+
+    DOC_STATE.activeChunkIndex = i;
+    const chunk = chunks[i];
+    chunk.status = 'processing';
+
+    chunk.blockIds.forEach(id => {
+      const el = document.getElementById('status_' + id);
+      if (el) el.textContent = '⏳ Rewriting...';
+    });
+
+    const pct = Math.round((i / chunks.length) * 100);
+    const pb = document.getElementById('docProgressBar');
+    if (pb) pb.style.width = pct + '%';
+    const pp = document.getElementById('docProgressPct');
+    if (pp) pp.textContent = pct + '%';
+    const pl = document.getElementById('docProgressLabel');
+    if (pl) pl.textContent = `Processing chunk ${i + 1} of ${chunks.length} (${chunk.wordCount} words)...`;
+
+    try {
+      let rewritten = '';
+      if (engine === 'local-server') {
+        const meta = await callLocalServer(chunk.text);
+        rewritten = meta.text;
+      } else if (engine === 'model') {
+        const meta = await callHumanizerModel(chunk.text);
+        rewritten = meta.text;
+      } else {
+        rewritten = humanizeText(chunk.text, strength, tone);
+      }
+
+      chunk.humanizedText = rewritten;
+      chunk.status = 'done';
+
+      let chunkFidelity = null;
+      if (FidelityGuardModule && FidelityGuardModule.verifyFidelity) {
+        chunkFidelity = FidelityGuardModule.verifyFidelity(chunk.text, rewritten);
+        chunk.fidelity = chunkFidelity;
+      }
+
+      chunk.blockIds.forEach(id => {
+        const el = document.getElementById('status_' + id);
+        if (el) {
+          if (chunkFidelity && !chunkFidelity.passed) {
+            const issues = chunkFidelity.criticalViolations.map(v => v.items.join(', ')).join('; ');
+            el.innerHTML = `<span style="color:#dc2626;font-weight:600" title="${escapeHtml(chunkFidelity.summary)}">⚠️ Fact Drift: ${escapeHtml(issues)}</span>`;
+          } else {
+            el.innerHTML = `<span style="color:#15803d;font-weight:500">✓ Completed</span>`;
+          }
+        }
+      });
+
+      updateDocOutputArea();
+
+    } catch (err) {
+      chunk.status = 'failed';
+      console.error('Error processing chunk ' + i, err);
+      chunk.blockIds.forEach(id => {
+        const el = document.getElementById('status_' + id);
+        if (el) el.textContent = '⚠️ Failed';
+      });
+
+      const isConnRefused = /fetch|network|connection|refused|abort/i.test(err.message || String(err));
+      if (engine === 'local-server' && isConnRefused) {
+        DOC_STATE.isRunning = false;
+        alert("⚠️ Connection to local 12B server (127.0.0.1:8080) failed.\n\nPlease start the server by running 'run_local.bat' or switch to '12B model (hosted)' or 'Local rules (offline)'.");
+        break;
+      }
+
+      const shouldContinue = confirm(`Chunk ${i + 1} failed: ${err.message}\n\nDo you want to continue with the remaining chunks?`);
+      if (!shouldContinue) {
+        DOC_STATE.isRunning = false;
+        break;
+      }
+    }
+  }
+
+  DOC_STATE.isRunning = false;
+  const pb = document.getElementById('docProgressBar');
+  if (pb) pb.style.width = '100%';
+  const pp = document.getElementById('docProgressPct');
+  if (pp) pp.textContent = '100%';
+  const pl = document.getElementById('docProgressLabel');
+  if (pl) pl.textContent = '✓ Document processing complete!';
+  if (startBtn) startBtn.style.display = 'inline-flex';
+  if (pauseBtn) pauseBtn.style.display = 'none';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+
+  updateDocOutputArea();
+}
+
+function updateDocOutputArea() {
+  const el = document.getElementById('docReassembleMode');
+  const mode = el ? el.value : 'clean-prose';
+  const reassembled = DocParserModule.reassembleDocument(DOC_STATE.blocks, DOC_STATE.chunks, mode);
+  DOC_STATE.fullOutputText = reassembled;
+  const area = document.getElementById('docOutputArea');
+  if (area) area.textContent = reassembled;
+}
+
+function toggleDocPause() {
+  DOC_STATE.isPaused = !DOC_STATE.isPaused;
+  const btn = document.getElementById('docPauseBtn');
+  if (btn) btn.textContent = DOC_STATE.isPaused ? 'Resume' : 'Pause';
+  const pl = document.getElementById('docProgressLabel');
+  if (pl) pl.textContent = DOC_STATE.isPaused ? '⏸ Paused' : 'Processing...';
+}
+
+function cancelDocProcess() {
+  DOC_STATE.isRunning = false;
+  DOC_STATE.isPaused = false;
+  const startBtn = document.getElementById('docStartBtn');
+  const pauseBtn = document.getElementById('docPauseBtn');
+  const cancelBtn = document.getElementById('docCancelBtn');
+  const pl = document.getElementById('docProgressLabel');
+  if (startBtn) startBtn.style.display = 'inline-flex';
+  if (pauseBtn) pauseBtn.style.display = 'none';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (pl) pl.textContent = 'Cancelled.';
+}
+
+function copyDocOutput() {
+  if (!DOC_STATE.fullOutputText) return;
+  navigator.clipboard.writeText(DOC_STATE.fullOutputText);
+  alert('Copied document text to clipboard!');
+}
+
+function exportDocAsText() {
+  if (!DOC_STATE.fullOutputText) return;
+  const blob = new Blob([DOC_STATE.fullOutputText], { type: 'text/plain;charset=utf-8' });
+  downloadBlob(blob, (DOC_STATE.fileName ? DOC_STATE.fileName.replace(/\.[^/.]+$/, '') : 'humanized_document') + '_humanized.txt');
+}
+
+async function exportDocAsWord() {
+  if (!DOC_STATE.fullOutputText) return;
+  const blob = await DocParserModule.generateDocxBlob(DOC_STATE.fullOutputText);
+  downloadBlob(blob, (DOC_STATE.fileName ? DOC_STATE.fileName.replace(/\.[^/.]+$/, '') : 'humanized_document') + '_humanized.docx');
+}
+
+function downloadBlob(blob, filename) {
+  if (typeof URL === 'undefined' || typeof document === 'undefined') return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ===== FIDELITY-FIRST REWRITE =====
+// Style is a target; facts are a constraint. Before any stylistic rewrite we
+// lock qualifiers, numbers, dates, names and URLs so they cannot be dropped,
+// weakened or flipped. This mirrors the "fidelity in the reward, not the
+// detector in the reward" design: the rewrite is never optimised against
+// the detector shown in the UI.
+
+const QUALIFIERS = [
+  'estimated', 'approximately', 'roughly', 'about', 'around', 'nearly', 'almost',
+  'at least', 'up to', 'less than', 'more than', 'exactly', 'over', 'under',
+  'suggest', 'suggests', 'suggested', 'may', 'might', 'could', 'possible', 'possibly',
+  'maybe', 'perhaps',
+  'likely', 'unlikely', 'probable', 'probably', 'apparently', 'reportedly', 'allegedly',
+  'seems', 'seem', 'appears', 'appear', 'tends', 'tend', 'generally', 'typically',
+  'often', 'sometimes', 'rarely', 'occasionally', 'partially', 'potentially',
+  'some', 'several', 'few', 'many', 'most', 'a number of', 'a portion of'
+];
+
+function protectSpans(text) {
+  const patterns = [
+    /\b(?:https?:\/\/|www\.)[^\s)]+|[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi,
+    /\b(?:an?\s+)?(?:estimated|approximately|roughly|about|around|nearly|almost|over|under|at least|up to|less than|more than|exactly)\s+\d[\d,.]*\s*(?:%|percent|percentage points?|million|billion|thousand|trillion|kg|km|hours?|days?|weeks?|months?|years?)?\b/gi,
+    /\b\d[\d,.]*\s*(?:%|percent|percentage points?|million|billion|thousand|trillion|kg|km|hours?|days?|weeks?|months?|years?)\b/gi,
+    /\b\d[\d,.]*\b/g,
+    /\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s*\d{4}\b|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/gi,
+    /\b(?:Mr|Mrs|Ms|Dr|Prof|President|CEO|Senator)\.?\s+[A-Z][a-z]+\b|\b[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,}\b/g,
+    ...QUALIFIERS.map(q => new RegExp('\\b' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'))
+  ];
+
+  // Collect all hits, then choose greedily longest-first so
+  // "an estimated 4.2%" wins over the bare "estimated".
+  const hits = [];
+  for (const re of patterns) {
+    let m;
+    const r = new RegExp(re.source, re.flags);
+    while ((m = r.exec(text)) !== null) {
+      hits.push({ start: m.index, end: m.index + m[0].length, text: m[0] });
+      if (m.index === r.lastIndex) r.lastIndex++;
+    }
+  }
+  hits.sort((a, b) => (b.end - b.start) - (a.end - a.start));
+
+  const chosen = [];
+  for (const h of hits) {
+    if (chosen.some(c => h.start < c.end && h.end > c.start)) continue;
+    chosen.push(h);
+  }
+  chosen.sort((a, b) => b.start - a.start);
+
+  const spans = [];
+  let out = text;
+  for (const h of chosen) {
+    const token = '\u00a7\u00a7' + spans.length + '\u00a7\u00a7';
+    spans.push(h.text);
+    out = out.slice(0, h.start) + token + out.slice(h.end);
+  }
+  return { text: out, spans };
+}
+
+function restoreSpans(text, spans) {
+  for (let i = 0; i < spans.length; i++) {
+    text = text.split('\u00a7\u00a7' + i + '\u00a7\u00a7').join(spans[i]);
+  }
+  return text;
+}
+
+function detectRegister(text) {
+  const informal = (text.match(/\b(gonna|wanna|gotta|kinda|sorta|yeah|okay|lol|dude|guys|awesome|cool|stuff|you know|I mean|totally|literally)\b|!/gi) || []).length;
+  return informal >= 2 ? 'informal' : 'neutral';
+}
+
+// Verbatim 5-gram copy ratio — the first term of the reuse constraint.
+function computeReuse(original, rewritten) {
+  const norm = t => t.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(Boolean);
+  const a = norm(original), b = norm(rewritten);
+  if (a.length < 5 || b.length < 5) return 0;
+  const grams = new Set();
+  for (let i = 0; i <= a.length - 5; i++) grams.add(a.slice(i, i + 5).join(' '));
+  let hit = 0;
+  for (let i = 0; i <= b.length - 5; i++) if (grams.has(b.slice(i, i + 5).join(' '))) hit++;
+  return hit / (b.length - 4);
+}
+
+// Clause-level restructuring: move subordinate clauses, split contrastive
+// sentences. Both claims survive — only their order changes.
+function restructureSentence(s) {
+  const front = s.match(/^(.{15,}?)\s+(because|although|while|since)\s+(.+?)([.!?]?)$/i);
+  if (front && Math.random() < 0.55) {
+    const main = front[1], conj = front[2], sub = front[3], end = front[4];
+    const c = conj.charAt(0).toUpperCase() + conj.slice(1).toLowerCase();
+    return c + ' ' + sub.charAt(0).toLowerCase() + sub.slice(1) + ', ' +
+           main.charAt(0).toLowerCase() + main.slice(1) + end;
+  }
+  const contrast = s.match(/^(.{10,}?),\s+but\s+(.{10,}?)([.!?]?)$/i);
+  if (contrast && Math.random() < 0.45) {
+    const a = contrast[1], b = contrast[2], end = contrast[3];
+    return b.charAt(0).toUpperCase() + b.slice(1) + '. That said, ' +
+           a.charAt(0).toLowerCase() + a.slice(1) + end;
+  }
+  return s;
+}
+
+// Deterministic style-only fallback when randomized passes leave too much
+// of the original skeleton. No rule here touches a number, qualifier or name.
+function forceStylePass(s) {
+  const swaps = [
+    [/\bthe integration of\b/gi, 'using'],
+    [/\b(Furthermore|Moreover|Additionally)\b[,]?\s*/gi, 'And '],
+    [/\bhas demonstrated\b/gi, 'has shown'],
+    [/\bdemonstrated\b/gi, 'showed'],
+    [/\ba wide range of\b/gi, 'many'],
+    [/\bis being deployed\b/gi, 'is deployed'],
+    [/\bIn conclusion\b[,]?\s*/gi, '']
+  ];
+  for (const [re, to] of swaps) s = s.replace(re, to);
+  return s;
+}
+
+function humanizeText(text, strength, tone) {
+  const register = detectRegister(text);
+  // Heavy formalisation flattens slang and jokes — the article's "register"
+  // penalty. Ease off the vocabulary swaps when the source is informal.
+  const effective = register === 'informal'
+    ? { strength: strength === 'enhanced' ? 'standard' : 'light', tone: 'natural' }
+    : { strength, tone };
+
+  const sentences = splitSentences(text);
+  const attempts = [];
+  for (let pass = 0; pass < 8; pass++) {
+    const rewritten = sentences.map(s => humanizeSentence(s, effective.strength, effective.tone)).join(' ');
+    attempts.push({ text: rewritten, reuse: computeReuse(text, rewritten) });
+    if (attempts[attempts.length - 1].reuse <= 0.2) break;
+  }
+  // Keep the version that copied the least, so the function-word skeleton
+  // is not preserved while only nouns are swapped.
+  attempts.sort((a, b) => a.reuse - b.reuse);
+  let best = attempts[0];
+  if (best.reuse > 0.35) {
+    const forced = sentences
+      .map(s => forceStylePass(humanizeSentence(s, effective.strength, effective.tone)))
+      .join(' ');
+    const fr = computeReuse(text, forced);
+    if (fr < best.reuse) best = { text: forced, reuse: fr };
+  }
+  return best.text;
+}
+
+function splitSentences(text) {
+  // The period in a decimal ("4.2%") is not a sentence boundary. Hide it
+  // before splitting, otherwise the rewriter breaks the number in half.
+  const safe = text.replace(/(\d)\.(\d)/g, (m, a, b) => a + '\u0001' + b);
+  const parts = safe.match(/[^.!?]+[.!?]+["']?\s*/g) || [safe];
+  const consumed = parts.join('');
+  if (consumed.length < safe.length) parts.push(safe.slice(consumed.length));
+  return parts.filter(p => p.trim()).map(p => p.split('\u0001').join('.'));
+}
+
+function humanizeSentence(sentence, strength, tone) {
+  let s = sentence.trim();
+  if (!s) return sentence;
+
+  const intensity = strength === 'enhanced' ? 1.0 : strength === 'standard' ? 0.65 : 0.35;
+
+  // 0. Lock facts and qualifiers before touching anything
+  const locked = protectSpans(s);
+  s = locked.text;
+
+  // 1. Remove AI transition words and phrases
+  s = removeTransitions(s, intensity);
+
+  // 2. Restructure clauses — not just synonym swaps
+  if (strength !== 'light') s = restructureSentence(s);
+
+  // 3. Split long sentences for burstiness
+  if (strength !== 'light' && Math.random() < intensity * 0.4) {
+    s = splitSentence(s);
+  }
+
+  // 4. Replace overly formal words with natural alternatives
+  s = replaceFormalWords(s, intensity);
+
+  // 5. Adjust vocabulary based on tone
+  s = applyTone(s, tone, intensity);
+
+  // 6. Add burstiness — vary sentence length
+  s = addBurstiness(s, intensity);
+
+  // NOTE: hedge removal is deliberately gone. "suggest", "estimated",
+  // "may" and friends carry factual direction — deleting them was the
+  // single most common error in the reference evaluation.
+
+  // 7. Replace predictable patterns
+  s = replacePatterns(s, intensity);
+
+  // 8. Add contractions for natural speech
+  if (tone !== 'academic') {
+    s = addContractions(s, intensity);
+  }
+
+  // 9. Vary sentence beginnings
+  if (strength !== 'light') {
+    s = varyBeginnings(s, intensity);
+  }
+
+  // Restore protected facts before returning
+  s = restoreSpans(s, locked.spans);
+
+  // Ensure proper capitalization
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+
+  return s;
+}
+
+// --- Transition removal ---
+const TRANSITIONS = [
+  {re: /\b(Furthermore|Moreover|Additionally|In addition)\b[,]?\s*/gi, repl: ['And ', 'Plus, ', 'Also, ', ''], weight: 0.7},
+  {re: /\b(Consequently|Therefore|Thus|Hence|Accordingly)\b[,]?\s*/gi, repl: ['So ', 'That means ', 'Which means ', 'So, '], weight: 0.6},
+  {re: /\b(In conclusion|To conclude|In summary|To summarize)\b[,]?\s*/gi, repl: ['Bottom line: ', 'Ultimately, ', 'At the end of the day, ', ''], weight: 0.8},
+  {re: /\b(It is important to note that|It should be noted that|It is worth noting that)\b\s*/gi, repl: ['Keep in mind ', 'Worth noting — ', ''], weight: 0.7},
+  // "Significantly" is a degree claim, not a discourse marker — never delete it.
+  {re: /\b(Notably|Importantly)\b[,]?\s*/gi, repl: ['Worth noting, ', 'More importantly, '], weight: 0.5},
+  {re: /\b(In today's world|In the modern era|In contemporary society)\b[,]?\s*/gi, repl: ['These days, ', 'Right now, ', ''], weight: 0.6},
+  {re: /\b(plays a (?:crucial|vital|significant|pivotal) role)\b/gi, repl: ['matters a lot', 'is really important', 'is key'], weight: 0.6},
+  {re: /\b(it is worth mentioning that)\b\s*/gi, repl: ['', ''], weight: 0.7},
+  {re: /\b(a wide range of|a broad range of|a comprehensive array of)\b/gi, repl: ['lots of', 'plenty of', 'all kinds of'], weight: 0.5},
+  {re: /\b(in order to)\b/gi, repl: ['to'], weight: 0.5},
+  {re: /\b(due to the fact that)\b/gi, repl: ['because', 'since'], weight: 0.6},
+  {re: /\b(in spite of the fact that)\b/gi, repl: ['even though', 'although'], weight: 0.6},
+  {re: /\b(a large number of|a significant number of|a considerable amount of)\b/gi, repl: ['many', 'lots of', 'tons of'], weight: 0.5},
+  {re: /\b(utilize|utilizes|utilized|utilization)\b/gi, repl: m => {
+    if (/^utiliz(e|ing)$/i.test(m)) return 'use';
+    if (/utilizes/i.test(m)) return 'uses';
+    if (/utilized/i.test(m)) return 'used';
+    return 'use';
+  }, weight: 0.5},
+  {re: /\b(demonstrate|demonstrates|demonstrated|demonstrating)\b/gi, repl: m =>
+    /demonstrated/i.test(m) ? 'showed' : /demonstrating/i.test(m) ? 'showing' :
+    /demonstrates/i.test(m) ? 'shows' : 'show', weight: 0.6},
+  {re: /\b(facilitate|facilitates|facilitated|facilitating)\b/gi, repl: m =>
+    /facilitated/i.test(m) ? 'helped' : /facilitating/i.test(m) ? 'helping' :
+    /facilitates/i.test(m) ? 'helps' : 'help', weight: 0.6},
+  {re: /\bthe integration of\b/gi, repl: ['using', 'bringing in'], weight: 0.6},
+  {re: /\b(endeavor|endeavors)\b/gi, repl: ['try', 'tries'], weight: 0.5},
+  {re: /\b(subsequently)\b/gi, repl: ['then', 'later'], weight: 0.5},
+  {re: /\b(prior to)\b/gi, repl: ['before'], weight: 0.5},
+  {re: /\b(regarding|concerning|with respect to)\b/gi, repl: ['about'], weight: 0.4},
+  {re: /\b(ascertain)\b/gi, repl: ['find out', 'figure out'], weight: 0.5},
+  {re: /\b(commence|commences|commenced)\b/gi, repl: m => /commenced/i.test(m) ? 'started' : /commences/i.test(m) ? 'starts' : 'start', weight: 0.5},
+  {re: /\b(terminate|terminates|terminated)\b/gi, repl: m => /terminated/i.test(m) ? 'ended' : /terminates/i.test(m) ? 'ends' : 'end', weight: 0.5},
+  {re: /\b(alter|alters|altered|modifies|modified)\b/gi, repl: m => /ed$/i.test(m) ? 'changed' : /s$/i.test(m) ? 'changes' : 'change', weight: 0.4},
+  {re: /\b(ameliorate)\b/gi, repl: ['improve', 'fix'], weight: 0.6},
+  {re: /\b(paradigm shift)\b/gi, repl: ['big change', 'major shift'], weight: 0.6},
+  {re: /\b(leverag\w+)/gi, repl: ['use', 'tap into'], weight: 0.5},
+  {re: /\b(seamlessly|seamless)\b/gi, repl: ['smoothly', 'smooth'], weight: 0.4},
+  {re: /\b(robust)\b/gi, repl: ['solid', 'strong'], weight: 0.4},
+  {re: /\b(holistic)\b/gi, repl: ['overall', 'big-picture'], weight: 0.4},
+  {re: /\b(cutting-edge|state-of-the-art)\b/gi, repl: ['latest', 'advanced', 'modern'], weight: 0.4},
+  {re: /\b(delve into)\b/gi, repl: ['dig into', 'look at', 'explore'], weight: 0.6},
+  {re: /\b(realm of)\b/gi, repl: ['field of', 'world of'], weight: 0.4},
+  {re: /\b(tapestry)\b/gi, repl: ['mix', 'blend'], weight: 0.6},
+  {re: /\b(landscape)\b/gi, repl: ['scene', 'world', 'field'], weight: 0.3},
+  {re: /\b(foster)\b/gi, repl: ['build', 'encourage', 'grow'], weight: 0.4},
+  {re: /\b(underscore)\b/gi, repl: ['highlight', 'show'], weight: 0.4},
+  {re: /\b(myriad)\b/gi, repl: ['many', 'countless'], weight: 0.5},
+  {re: /\b(plethora of)\b/gi, repl: ['lots of', 'plenty of'], weight: 0.5},
+  {re: /\b(indispensable)\b/gi, repl: ['essential', 'necessary', 'key'], weight: 0.4},
+  {re: /\b(inherent)\b/gi, repl: ['built-in', 'natural'], weight: 0.4},
+];
+
+function removeTransitions(s, intensity) {
+  for (const t of TRANSITIONS) {
+    if (Math.random() < t.weight * intensity) {
+      // A function replacement keeps inflection agreement (utilizes → uses,
+      // not "utilizes → use"). Otherwise pick one of the canned variants.
+      if (typeof t.repl === 'function') {
+        s = s.replace(t.re, t.repl);
+      } else {
+        const pick = t.repl[Math.floor(Math.random() * t.repl.length)];
+        s = s.replace(t.re, pick);
+      }
+    }
+  }
+  return s;
+}
+
+// --- Formal word replacement ---
+const FORMAL_WORDS = [
+  [/\b(endeavour|endeavor)\b/gi, 'try'],
+  [/\b(commence[d]?)\b/gi, m => m.endsWith('d') ? 'started' : 'start'],
+  [/\b(terminate[d]?)\b/gi, m => /d$/.test(m) ? 'ended' : 'end'],
+  [/\b(ascertain)\b/gi, 'find out'],
+  [/\b(expedite)\b/gi, 'speed up'],
+  [/\b(subsequent to)\b/gi, 'after'],
+  [/\b(in the event that)\b/gi, 'if'],
+  [/\b(for the purpose of)\b/gi, 'to'],
+  [/\b(with regard to)\b/gi, 'about'],
+  [/\b(in accordance with)\b/gi, 'following'],
+  [/\b(notwithstanding)\b/gi, 'despite'],
+  [/\b(hitherto)\b/gi, 'before now'],
+  [/\b(therein)\b/gi, 'in there'],
+  [/\b(heretofore)\b/gi, 'before'],
+  [/\b(aforementioned)\b/gi, 'that'],
+  [/\b(cognizant)\b/gi, 'aware'],
+  [/\b(obfuscate)\b/gi, 'confuse'],
+  [/\b(esoteric)\b/gi, 'obscure'],
+  [/\b(ubiquitous)\b/gi, 'everywhere'],
+  [/\b(proliferat\w+)/gi, 'spread'],
+  [/\b(necessitate)\b/gi, 'require'],
+  [/\b(alleviate)\b/gi, 'ease'],
+  [/\b(bespoke)\b/gi, 'custom'],
+  [/\b(elucidate)\b/gi, 'explain'],
+  [/\b(expound)\b/gi, 'explain'],
+  [/\b(juxtapose)\b/gi, 'compare'],
+  [/\b(quantif\w+)/gi, 'measure'],
+  [/\b(paradigm)\b/gi, 'model'],
+  [/\b(synergy|synergies)\b/gi, 'teamwork'],
+  [/\b(actionable)\b/gi, 'useful'],
+  [/\b(impactful)\b/gi, 'powerful'],
+];
+
+function replaceFormalWords(s, intensity) {
+  for (const [re, repl] of FORMAL_WORDS) {
+    if (Math.random() < 0.6 * intensity) {
+      s = s.replace(re, typeof repl === 'function' ? repl : repl);
+    }
+  }
+  return s;
+}
+
+// --- Tone adjustment ---
+function applyTone(s, tone, intensity) {
+  if (tone === 'casual') {
+    const casual = [
+      [/\b(approximately)\b/gi, 'about'],
+      [/\b(sufficient)\b/gi, 'enough'],
+      [/\b(request)\b/gi, 'ask'],
+      [/\b(obtain)\b/gi, 'get'],
+      [/\b(purchase)\b/gi, 'buy'],
+      [/\b(individuals)\b/gi, 'people'],
+      [/\b(children)\b/gi, 'kids'],
+      [/\b(mother|father)\b/gi, m => /m/i.test(m[0]) ? 'mom' : 'dad'],
+      [/\b(difficult)\b/gi, 'hard'],
+      [/\b(simple)\b/gi, 'easy'],
+      [/\b(additionally)\b/gi, 'also'],
+      [/\b(however)\b/gi, 'but'],
+      [/\b(therefore)\b/gi, 'so'],
+      [/\b(regarding)\b/gi, 'about'],
+    ];
+    for (const [re, r] of casual) {
+      if (Math.random() < 0.5 * intensity) s = s.replace(re, r);
+    }
+  } else if (tone === 'academic') {
+    // Keep some formal words but vary structure
+    s = s.replace(/\b(can't|won't|don't|isn't|aren't|wasn't|weren't|haven't|hasn't|wouldn't|couldn't|shouldn't)\b/gi, m => {
+      const map = {"can't":"cannot","won't":"will not","don't":"do not","isn't":"is not","aren't":"are not","wasn't":"was not","weren't":"were not","haven't":"have not","hasn't":"has not","wouldn't":"would not","couldn't":"could not","shouldn't":"should not"};
+      return map[m.toLowerCase()] || m;
+    });
+  } else if (tone === 'business') {
+    // Only structural polish — "good/bad/big" carry the author's actual
+    // evaluation. Upgrading them silently changes the claim.
+    const biz = [
+      [/\b(stuff)\b/gi, 'items'],
+      [/\b(get)\b/gi, 'obtain'],
+    ];
+    for (const [re, r] of biz) {
+      if (Math.random() < 0.3 * intensity) s = s.replace(re, r);
+    }
+  }
+  return s;
+}
+
+// --- Burstiness: vary sentence length ---
+function addBurstiness(s, intensity) {
+  // Sometimes start with a short phrase
+  if (Math.random() < 0.15 * intensity && s.length > 80) {
+    const shortStarts = ['Look,', 'Here\'s the thing —', 'Really,', 'Now,', 'Honestly,', 'Think about it:', 'And yes,'];
+    const pick = shortStarts[Math.floor(Math.random() * shortStarts.length)];
+    // Don't add if sentence already starts with a similar phrase
+    if (!/^(Look|Here|Really|Now|Honestly|Think|And yes)/i.test(s)) {
+      s = pick + ' ' + s.charAt(0).toLowerCase() + s.slice(1);
+    }
+  }
+  return s;
+}
+
+// --- Hedge removal ---
+const HEDGES = [
+  /\b(it could be argued that)\b/gi,
+  /\b(one might argue that)\b/gi,
+  /\b(it can be said that)\b/gi,
+  /\b(arguably)\b[,]?\s*/gi,
+  /\b(presumably)\b[,]?\s*/gi,
+  /\b(purportedly)\b[,]?\s*/gi,
+  /\b(it appears that)\b/gi,
+  /\b(it seems that)\b/gi,
+  /\b(to some extent)\b[,]?\s*/gi,
+];
+
+function removeHedges(s, intensity) {
+  for (const re of HEDGES) {
+    if (Math.random() < 0.7 * intensity) {
+      s = s.replace(re, '');
+    }
+  }
+  return s;
+}
+
+// --- Pattern replacement ---
+function replacePatterns(s, intensity) {
+  // "is one of the most X" -> "stands out as X"
+  if (Math.random() < 0.4 * intensity) {
+    s = s.replace(/is one of the most (\w+)/i, (m, w) => {
+      const alts = [`really ${w}`, `quite ${w}`, `especially ${w}`];
+      return alts[Math.floor(Math.random() * alts.length)];
+    });
+  }
+
+  // "has emerged as" -> "has become" / "is now"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\bhas emerged as\b/gi, m => ['has become', 'is now', 'turned into'][Math.floor(Math.random()*3)]);
+  }
+
+  // "fundamentally" -> "really" / "at its core"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\bfundamentally\b/gi, m => ['really', 'at its core', 'mostly'][Math.floor(Math.random()*3)]);
+  }
+
+  // "significant implications" -> "big consequences" / "real impact"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\bsignificant implications\b/gi, m => ['real impact', 'big consequences', 'major effects'][Math.floor(Math.random()*3)]);
+  }
+
+  // "a wide range of" -> "many" / "all kinds of"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\ba wide range of\b/gi, m => ['many', 'all kinds of', 'plenty of'][Math.floor(Math.random()*3)]);
+  }
+
+  // "it is worth noting" removal
+  s = s.replace(/\bit is worth noting that\b/gi, '');
+
+  // "represents a paradigm shift" -> "is a real game-changer"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\brepresents a paradigm shift\b/gi, 'is a real game-changer');
+  }
+
+  // Passive voice → active (simple cases)
+  if (Math.random() < 0.3 * intensity) {
+    s = s.replace(/\bis being (\w+ed) by\b/gi, (m, v) => {
+      // Just rephrase naturally
+      return 'gets ' + v;
+    });
+  }
+
+  // "the integration of" -> "using" / "adding"
+  if (Math.random() < 0.4 * intensity) {
+    s = s.replace(/\bthe integration of\b/gi, m => ['using', 'adding', 'bringing in'][Math.floor(Math.random()*3)]);
+  }
+
+  // "increasingly being" -> "more and more"
+  if (Math.random() < 0.4 * intensity) {
+    s = s.replace(/\bincreasingly being\b/gi, 'more and more');
+  }
+
+  // "in the years to come" -> "down the road" / "going forward"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\bin the years to come\b/gi, m => ['down the road', 'going forward', 'soon'][Math.floor(Math.random()*3)]);
+  }
+
+  // "competitive disadvantage" -> "left behind"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\bat a competitive disadvantage\b/gi, 'left behind');
+  }
+
+  // "remarkable capabilities" -> "impressive skills"
+  if (Math.random() < 0.4 * intensity) {
+    s = s.replace(/\bremarkable capabilities\b/gi, m => ['impressive skills', 'real capabilities', 'strong abilities'][Math.floor(Math.random()*3)]);
+  }
+
+  // Remove redundant "in conclusion" style endings
+  s = s.replace(/\b(in conclusion,?)\s*/gi, '');
+
+  // "will likely yield" -> "will probably bring"
+  if (Math.random() < 0.5 * intensity) {
+    s = s.replace(/\bwill likely yield\b/gi, 'will probably bring');
+  }
+
+  return s;
+}
+
+// --- Contractions ---
+function addContractions(s, intensity) {
+  const contractions = [
+    [/\b(do not)\b/gi, "don't"],
+    [/\b(does not)\b/gi, "doesn't"],
+    [/\b(did not)\b/gi, "didn't"],
+    [/\b(is not)\b/gi, "isn't"],
+    [/\b(are not)\b/gi, "aren't"],
+    [/\b(was not)\b/gi, "wasn't"],
+    [/\b(were not)\b/gi, "weren't"],
+    [/\b(has not)\b/gi, "hasn't"],
+    [/\b(have not)\b/gi, "haven't"],
+    [/\b(had not)\b/gi, "hadn't"],
+    [/\b(will not)\b/gi, "won't"],
+    [/\b(would not)\b/gi, "wouldn't"],
+    [/\b(could not)\b/gi, "couldn't"],
+    [/\b(should not)\b/gi, "shouldn't"],
+    [/\b(cannot)\b/gi, "can't"],
+    [/\b(it is)\b/gi, "it's"],
+    [/\b(that is)\b/gi, "that's"],
+    [/\b(there is)\b/gi, "there's"],
+    [/\b(they are)\b/gi, "they're"],
+    [/\b(you are)\b/gi, "you're"],
+    [/\b(we are)\b/gi, "we're"],
+    [/\b(I am)\b/gi, "I'm"],
+    [/\b(you have)\b/gi, "you've"],
+    [/\b(we have)\b/gi, "we've"],
+    [/\b(they have)\b/gi, "they've"],
+    [/\b(I have)\b/gi, "I've"],
+    [/\b(you will)\b/gi, "you'll"],
+    [/\b(we will)\b/gi, "we'll"],
+    [/\b(they will)\b/gi, "they'll"],
+    [/\b(I will)\b/gi, "I'll"],
+    [/\b(let us)\b/gi, "let's"],
+  ];
+  for (const [re, r] of contractions) {
+    if (Math.random() < 0.6 * intensity) s = s.replace(re, r);
+  }
+  return s;
+}
+
+// Lowercase only the first letter of a normal word, never an acronym
+// like "AI" or a proper noun — otherwise "AI" becomes "aI".
+function lowerFirstWord(s) {
+  const first = s.split(/\s+/)[0];
+  if (/^[A-Z][A-Z0-9]/.test(first) || /^[A-Z][a-z]+[A-Z]/.test(first)) return s;
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+// --- Vary sentence beginnings ---
+function varyBeginnings(s, intensity) {
+  // If sentence starts with "The", sometimes change it
+  if (Math.random() < 0.2 * intensity) {
+    if (/^The\s+\w+/.test(s)) {
+      const alts = ['This ', 'That ', 'A ', ''];
+      const pick = alts[Math.floor(Math.random() * alts.length)];
+      s = pick + lowerFirstWord(s.replace(/^The\s+/, ''));
+    }
+  }
+
+  // Sometimes start with "And" or "But" for natural flow
+  if (Math.random() < 0.1 * intensity && !/^(And|But|So|Yet|Still)/i.test(s)) {
+    // Never add a contrastive "But" — it invents a contrast the draft never made.
+    const connectors = ['And ', 'Also, '];
+    s = connectors[Math.floor(Math.random() * connectors.length)] + lowerFirstWord(s);
+  }
+
+  return s;
+}
+
+// --- Split long sentences ---
+function splitSentence(s) {
+  // Find a natural break point (comma + conjunction)
+  const breaks = s.match(/,\s+(and|but|which|whereas|while|where|so)\s+/gi);
+  if (breaks && s.length > 60) {
+    const idx = s.search(/,\s+(and|but|which|whereas|while|where|so)\s+/i);
+    if (idx > 20) {
+      let first = s.slice(0, idx).trim();
+      let rest = s.slice(idx).replace(/^,\s*(and|but|which|whereas|while|where|so)\s*/i, '').trim();
+      const connector = s.match(/,\s+(and|but|which|whereas|while|where|so)\s/i)?.[1] || '';
+      // Capitalize rest
+      rest = rest.charAt(0).toUpperCase() + rest.slice(1);
+      // Ensure first ends with punctuation
+      if (!/[.!?]$/.test(first)) first += '.';
+      // Pick a natural connector for the second sentence
+      const connectors = {and: 'And ', but: 'But ', so: 'So ', while: 'Meanwhile, ', whereas: 'That said, ', which: '', where: ''};
+      const c = connectors[connector.toLowerCase()] || '';
+      return first + ' ' + c + rest;
+    }
+  }
+  return s;
+}
+
+// ============================================================
+//  AI DETECTOR ENGINE
+// ============================================================
+
+function detectFromInput() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) return;
+  // Switch to detector tab and run
+  document.querySelector('.tab[data-tool="detector"]').click();
+  document.getElementById('detectText').value = text;
+  updateDetectWords();
+  runDetection();
+}
+
+function runDetection() {
+  const text = document.getElementById('detectText').value.trim();
+  if (!text) return;
+
+  document.getElementById('detectBtn').disabled = true;
+
+  showProcessing('Scanning for AI patterns...', [
+    'Analyzing text patterns',
+    'Checking perplexity',
+    'Measuring burstiness',
+    'Detecting model fingerprints',
+    'Generating report'
+  ]).then(() => {
+    const result = detectAI(text);
+    STATE.detectorResult = result;
+    renderDetectionResult(result);
+    document.getElementById('detectBtn').disabled = false;
+  });
+}
+
+// Count distinct AI telltale phrases across the whole text.
+// Layering many of these in one passage is the strongest AI signal.
+function countAIMarkers(text) {
+  const markers = [
+    /\bfurthermore\b/gi, /\bmoreover\b/gi, /\badditionally\b/gi,
+    /\bconsequently\b/gi, /\btherefore\b/gi, /\bthus\b/gi,
+    /\bit is important to note\b/gi, /\bit should be noted\b/gi,
+    /\bit is worth noting\b/gi, /\bin conclusion\b/gi, /\bin summary\b/gi,
+    /\bhas emerged as\b/gi, /\bone of the most\b/gi,
+    /\bdemonstrated remarkable\b/gi, /\bsignificant implications\b/gi,
+    /\bthe integration of\b/gi, /\brepresents a paradigm shift\b/gi,
+    /\bparadigm shift\b/gi, /\bplays a (?:crucial|vital|significant|pivotal) role\b/gi,
+    /\ba wide range of\b/gi, /\butiliz\w+/gi, /\bfacilitat\w+/gi,
+    /\bnot only\b.{0,80}\bbut also\b/gi, /\bsubsequently\b/gi,
+    /\bfundamentally\b/gi, /\btransformative\b/gi
+  ];
+  let count = 0;
+  for (const re of markers) count += (text.match(re) || []).length;
+  return count;
+}
+
+// Calibration corpus for the clipping bound. Li et al. (2026), "Robust
+// Detection of LLM-Generated Text under Contamination", select the floor from
+// quantiles of clean human scores rather than from the document under test.
+// This small built-in set serves that role for our sentence-level scorer.
+const CALIBRATION_HUMAN = [
+  'I went to the store yesterday and picked up some milk.',
+  'The cashier was really nice, she smiled at me!',
+  "Honestly, I don't know what to tell you.",
+  "It's kinda weird that he said that, you know?",
+  'We left around 6 and got there before dark.',
+  'I think maybe she was just tired.',
+  'That was a pretty good movie, actually.',
+  'My brother said he saw it too.',
+  'Yeah, I have no idea what happened there.',
+  'Bought some bread, forgot the eggs. Typical me.',
+  'Anyway, it worked out fine in the end.'
+];
+
+function clippingFloor(q) {
+  const scores = CALIBRATION_HUMAN.map(s => scoreSentenceAI(s).score).sort((a, b) => a - b);
+  if (!scores.length) return 0;
+  const i = Math.min(scores.length - 1, Math.max(0, Math.floor((1 - q) * (scores.length - 1))));
+  return scores[i];
+}
+
+// Lower-clip each sentence score, then average — so a few human-edited
+// sentences cannot cancel evidence from the rest of the document.
+function clippedAverage(values, floor) {
+  if (!values.length) return 0;
+  return values.reduce((a, v) => a + Math.max(v, floor), 0) / values.length;
+}
+
+function quantile(values, p) {
+  if (!values.length) return 0;
+  const s = [...values].sort((a, b) => a - b);
+  const i = Math.min(s.length - 1, Math.max(0, Math.floor(p * (s.length - 1))));
+  return s[i];
+}
+
+function detectAI(text) {
+  const sentences = splitSentences(text);
+  const sentenceScores = sentences.map(s => scoreSentenceAI(s));
+  const rawValues = sentenceScores.map(s => s.score);
+
+  // q = 0.80 is the lowest candidate quantile in the paper's set
+  // {0.80, 0.85, 0.90, 0.95, 0.975, 0.99, 0.995}.
+  const floor = clippingFloor(0.80);
+  const rawMean = rawValues.length > 0
+    ? rawValues.reduce((a, b) => a + b, 0) / rawValues.length
+    : 0;
+  const clippedMean = clippedAverage(rawValues, floor);
+  const rawScore = Math.round(rawMean * 10) / 10;
+  const clippedScore = Math.round(clippedMean * 10) / 10;
+  const avgScore = Math.round(clippedMean);
+
+  // Calculate metrics
+  const perplexity = calculatePerplexity(text);
+  const burstiness = calculateBurstiness(sentences);
+  const fingerprintScore = detectFingerprints(text);
+
+  // Stacked AI markers: obvious AI text stacks multiple telltale phrases.
+  // A single marker is weak evidence; several together are strong evidence.
+  const markerCount = countAIMarkers(text);
+  const markerBonus = Math.min(32, markerCount * 4);
+
+  // Weighted combination
+  const aiScore = Math.min(99, Math.round(
+    avgScore * 0.35 +
+    (100 - perplexity) * 0.25 +
+    (100 - burstiness) * 0.2 +
+    fingerprintScore * 0.2 +
+    markerBonus
+  ));
+
+  const humanScore = 100 - aiScore;
+
+  return {
+    aiScore,
+    humanScore,
+    perplexity: Math.round(perplexity),
+    burstiness: Math.round(burstiness),
+    fingerprintScore: Math.round(fingerprintScore),
+    sentenceCount: sentences.length,
+    sentenceScores,
+    rawScore,
+    clippedScore,
+    clippingFloor: floor,
+    contaminated: rawScore < avgScore - 5
+  };
+}
+
+function scoreSentenceAI(sentence) {
+  let score = 30; // baseline
+  const s = sentence.toLowerCase();
+
+  // AI transition words
+  const aiTransitions = ['furthermore', 'moreover', 'additionally', 'consequently', 'therefore', 'thus', 'hence',
+    'in conclusion', 'it is important to note', 'it should be noted', 'it is worth noting',
+    'notably', 'significantly', 'subsequently', 'accordingly', 'in summary', 'to summarize'];
+  for (const t of aiTransitions) {
+    if (s.includes(t)) score += 15;
+  }
+
+  // Formal/hedging language
+  const formalPhrases = ['it could be argued', 'one might argue', 'it can be said', 'arguably',
+    'purportedly', 'presumably', 'to some extent', 'it appears that', 'it seems that',
+    'a wide range of', 'a significant number of', 'in order to', 'due to the fact that',
+    'for the purpose of', 'with regard to', 'in accordance with'];
+  for (const p of formalPhrases) {
+    if (s.includes(p)) score += 12;
+  }
+
+  // Buzzword density
+  const buzzwords = ['leverage', 'synergy', 'paradigm', 'holistic', 'seamless', 'robust',
+    'cutting-edge', 'state-of-the-art', 'delve into', 'tapestry', 'landscape',
+    'foster', 'underscore', 'myriad', 'plethora', 'indispensable', 'ubiquitous',
+    'proliferat', 'facilitate', 'utilize', 'commence', 'ameliorate', 'elucidate'];
+  let buzzCount = 0;
+  for (const b of buzzwords) {
+    if (s.includes(b)) { score += 8; buzzCount++; }
+  }
+
+  // Very uniform sentence length (typical AI)
+  const words = sentence.split(/\s+/);
+  if (words.length > 15 && words.length < 30) score += 5; // suspiciously medium-length
+  if (words.length > 35) score -= 5; // very long sentences are more human
+
+  // Check for lack of contractions (AI tends to not contract)
+  const hasNot = /\b(do not|does not|did not|is not|are not|will not|cannot|would not|could not|should not|it is|that is|there is|they are|you are|we are)\b/i.test(sentence);
+  const hasContraction = /\w('\w+|\w'\w+)/.test(sentence);
+  if (hasNot && !hasContraction) score += 8;
+
+  // Passive voice (AI overuses)
+  const passive = /\b(is|are|was|were|been|being)\s+\w+ed\b/i.test(s);
+  if (passive) score += 6;
+
+  // Lists of three (AI loves groups of three)
+  const triple = /(\w+,\s+){2,}\w+(,\s+and\s+|,\s+or\s+)\w+/i.test(sentence);
+  if (triple) score += 5;
+
+  // "Not only... but also" pattern
+  if (/not only.*but also/i.test(s)) score += 10;
+
+  // Em-dashes (AI loves them)
+  if (s.includes('—') || s.includes('–')) score += 3;
+
+  // Colon usage in non-quotes
+  if (/:\s/.test(sentence) && !/["']/.test(sentence)) score += 4;
+
+  // Perfect grammar with no informal markers
+  const informal = /\b(gonna|wanna|gotta|kinda|sorta|yeah|ok|okay|stuff|things|guys|cool|awesome)\b/i.test(s);
+  if (!informal && words.length > 10) score += 5;
+
+  // Exclamation or question marks (human markers)
+  if (/[!?]/.test(sentence)) score -= 8;
+
+  // First person pronouns (human marker)
+  if (/\b(i|i'm|i've|i'll|my|me|we|our|us)\b/i.test(s)) score -= 5;
+
+  // Clamp
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    text: sentence,
+    score,
+    level: score >= 60 ? 'high' : score >= 30 ? 'med' : 'low'
+  };
+}
+
+function calculatePerplexity(text) {
+  // Lower perplexity = more AI-like = lower score
+  // We measure vocabulary diversity and predictability
+  const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+  if (words.length < 5) return 70;
+
+  // Unique words ratio
+  const unique = new Set(words).size;
+  const ratio = unique / words.length;
+
+  // Common word ratio (top 100 English words)
+  const common = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may',
+    'might', 'must', 'shall', 'can', 'need', 'and', 'or', 'but', 'if', 'then', 'else',
+    'when', 'where', 'why', 'how', 'what', 'who', 'which', 'this', 'that', 'these', 'those',
+    'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
+    'my', 'your', 'his', 'its', 'our', 'their', 'to', 'of', 'in', 'on', 'at', 'by', 'for',
+    'with', 'about', 'as', 'into', 'through', 'during', 'before', 'after', 'above', 'below',
+    'from', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'once',
+    'here', 'there', 'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other',
+    'some', 'such', 'no', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just']);
+  const commonCount = words.filter(w => common.has(w.replace(/[^a-z]/g, ''))).length;
+  const commonRatio = commonCount / words.length;
+
+  // High common word ratio + low diversity = low perplexity = AI-like
+  const predictability = commonRatio * 0.6 + (1 - ratio) * 0.4;
+  // Convert to 0-100 where 100 = high perplexity (human-like)
+  return Math.round((1 - predictability) * 100 + 20);
+}
+
+function calculateBurstiness(sentences) {
+  // Burstiness = variation in sentence length
+  // Low variation = AI-like
+  if (sentences.length < 2) return 50;
+  const lengths = sentences.map(s => s.split(/\s+/).length);
+  const mean = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+  if (mean === 0) return 50;
+  const variance = lengths.reduce((a, b) => a + (b - mean) ** 2, 0) / lengths.length;
+  const stddev = Math.sqrt(variance);
+  const cv = stddev / mean; // coefficient of variation
+
+  // Map CV to 0-100 where 100 = high burstiness (human-like)
+  // Human writing typically has CV > 0.5, AI < 0.3
+  return Math.min(100, Math.round(cv * 150));
+}
+
+function detectFingerprints(text) {
+  // Detect specific AI model fingerprints
+  let score = 20;
+  const s = text.toLowerCase();
+
+  // "As an AI" / "I cannot" / disclaimer patterns
+  if (s.includes('as an ai') || s.includes('as a language model')) score += 50;
+
+  // Numbered lists in text
+  if (/\b(first|second|third|finally|lastly)\b[,]?\s/gi.test(text)) score += 15;
+
+  // "It's worth noting that"
+  if (s.includes("it's worth noting") || s.includes('it is worth noting')) score += 10;
+
+  // "In today's" / "In the modern" / "In the digital age"
+  if (/in today's|in the modern|in the digital age|in the 21st century/i.test(s)) score += 12;
+
+  // Perfect structure: intro + body + conclusion markers
+  if (/in conclusion|to conclude|in summary/i.test(s) && /first|moreover|furthermore|additionally/i.test(s)) score += 15;
+
+  // "plays a crucial role"
+  if (/plays a (crucial|vital|significant|pivotal|key) role/i.test(s)) score += 10;
+
+  // "has emerged as"
+  if (s.includes('has emerged as')) score += 8;
+
+  // Overuse of "important" / "significant" / "crucial"
+  const emphasis = (text.match(/\b(important|significant|crucial|vital|essential|critical|fundamental)\b/gi) || []).length;
+  if (emphasis > 2) score += 5 * Math.min(emphasis - 2, 5);
+
+  // "a wide range of" / "a variety of"
+  if (/a wide range of|a variety of|a broad spectrum of|an array of/i.test(s)) score += 8;
+
+  // "not only... but also"
+  if (/not only.*but also/i.test(s)) score += 8;
+
+  return Math.min(100, score);
+}
+
+function renderDetectionResult(result) {
+  const dr = document.getElementById('detectorResult');
+  dr.classList.add('show');
+
+  // Animate score circle
+  const ring = document.getElementById('scoreRing');
+  const pct = result.aiScore;
+  const circumference = 2 * Math.PI * 52; // ~326.7
+  const offset = circumference - (pct / 100) * circumference;
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = offset;
+
+  // Color based on score
+  const color = pct >= 60 ? '#ef4444' : pct >= 30 ? '#f59e0b' : '#22c55e';
+  ring.style.stroke = color;
+
+  document.getElementById('detectPct').textContent = pct + '%';
+  document.getElementById('detectPct').style.color = color;
+  document.getElementById('detectLabel').textContent = pct >= 60 ? 'AI-Generated' : pct >= 30 ? 'Mixed' : 'Human';
+  document.getElementById('detectStatus').textContent =
+    pct >= 60 ? 'Likely AI-generated' : pct >= 30 ? 'May contain AI text' : 'Likely human-written';
+  document.getElementById('detectStatus').style.color = color;
+
+  // Meta
+  document.getElementById('detectMeta').innerHTML = `
+    <div class="meta-row"><span class="key">Human Score</span><span class="val">${result.humanScore}%</span></div>
+    <div class="meta-row"><span class="key">Sentences</span><span class="val">${result.sentenceCount}</span></div>
+    <div class="meta-row"><span class="key">Perplexity</span><span class="val">${result.perplexity}/100</span></div>
+    <div class="meta-row"><span class="key">Burstiness</span><span class="val">${result.burstiness}/100</span></div>
+    <div class="meta-row"><span class="key">Fingerprint</span><span class="val">${result.fingerprintScore}/100</span></div>
+    <div class="meta-row"><span class="key">Sentence avg (raw)</span><span class="val">${result.rawScore}</span></div>
+    <div class="meta-row"><span class="key">Lower-clipped avg</span><span class="val">${result.clippedScore} <span style="color:var(--text3);font-weight:400">(floor ${result.clippingFloor})</span></span></div>
+  `;
+
+  // Sentence list
+  const list = document.getElementById('sentenceList');
+  list.innerHTML = result.sentenceScores.map(ss => {
+    const truncated = ss.text.length > 120 ? ss.text.slice(0, 120) + '...' : ss.text;
+    return `<div class="sentence-item ${ss.level}">
+      <span class="pct-tag">${ss.score}%</span>
+      ${escapeHtml(truncated)}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  GRAMMAR CHECKER ENGINE
+// ============================================================
+
+function checkGrammar() {
+  const text = document.getElementById('grammarText').value.trim();
+  if (!text) return;
+
+  document.getElementById('grammarBtn').disabled = true;
+
+  showProcessing('Checking grammar...', [
+    'Reading your text',
+    'Finding grammar issues',
+    'Checking spelling',
+    'Analyzing style',
+    'Generating suggestions'
+  ]).then(() => {
+    const issues = findGrammarIssues(text);
+    STATE.grammarIssues = issues;
+    renderGrammarResults(issues, text);
+    document.getElementById('grammarBtn').disabled = false;
+  });
+}
+
+function findGrammarIssues(text) {
+  const issues = [];
+  let id = 0;
+
+  // Define rules: [regex, type, message, fix function]
+  const rules = [
+    // Spelling
+    [/\b(teh)\b/gi, 'error', 'Spelling: "teh" should be "the"', () => 'the'],
+    [/\b(recieve\w*)\b/gi, 'error', 'Spelling: "recieve" should be "receive"', m => 'receiv' + m.slice(6)],
+    [/\b(seperate\w*)\b/gi, 'error', 'Spelling: "seperate" should be "separate"', m => 'separat' + m.slice(8)],
+    [/\b(definately)\b/gi, 'error', 'Spelling: "definately" should be "definitely"', () => 'definitely'],
+    [/\b(occured)\b/gi, 'error', 'Spelling: "occured" should be "occurred"', () => 'occurred'],
+    [/\b(untill)\b/gi, 'error', 'Spelling: "untill" should be "until"', () => 'until'],
+    [/\b(wich)\b/gi, 'error', 'Spelling: "wich" should be "which"', () => 'which'],
+    [/\b(thier)\b/gi, 'error', 'Spelling: "thier" should be "their"', () => 'their'],
+    [/\b(aproach\w*)\b/gi, 'error', 'Spelling: "aproach" should be "approach"', m => 'approch' + m.slice(6)],
+    [/\b(aproved)\b/gi, 'error', 'Spelling: "aproved" should be "approved"', () => 'approved'],
+    [/\b(tommorow|tomorrow)\b/gi, 'error', 'Spelling: should be "tomorrow"', () => 'tomorrow'],
+    [/\b(alot)\b/gi, 'error', 'Spelling: "alot" should be "a lot"', () => 'a lot'],
+    [/\b(wont)\b(?!\')/gi, 'error', 'Spelling: "wont" should be "won\'t" (or "won\'t")', () => "won't"],
+    [/\b(deskribe)\b/gi, 'error', 'Spelling: should be "describe"', () => 'describe'],
+
+    // Grammar: subject-verb agreement
+    [/\b(they has)\b/gi, 'error', 'Grammar: "they has" should be "they have"', () => 'they have'],
+    [/\b(they was)\b/gi, 'error', 'Grammar: "they was" should be "they were"', () => 'they were'],
+    [/\b(he have)\b/gi, 'error', 'Grammar: "he have" should be "he has"', () => 'he has'],
+    [/\b(she have)\b/gi, 'error', 'Grammar: "she have" should be "she has"', () => 'she has'],
+    [/\b(it have)\b/gi, 'error', 'Grammar: "it have" should be "it has"', () => 'it has'],
+    [/\b(there is\s+\w+\s+\w+)/gi, 'error', 'Grammar: "there is" with plural — should be "there are"', m => m.replace(/there is/i, 'there are')],
+
+    // Grammar: common mistakes
+    [/\b(its a)\b/gi, 'error', 'Grammar: "its" should be "it\'s" (contraction of "it is")', () => "it's a"],
+    [/\b(its an)\b/gi, 'error', 'Grammar: "its" should be "it\'s" (contraction of "it is")', () => "it's an"],
+    [/\b(your welcome)\b/gi, 'error', 'Grammar: "your welcome" should be "you\'re welcome"', () => "you're welcome"],
+    [/\b(your right)\b/gi, 'error', 'Grammar: "your right" should be "you\'re right"', () => "you're right"],
+    [/\b(could of)\b/gi, 'error', 'Grammar: "could of" should be "could have"', () => 'could have'],
+    [/\b(should of)\b/gi, 'error', 'Grammar: "should of" should be "should have"', () => 'should have'],
+    [/\b(would of)\b/gi, 'error', 'Grammar: "would of" should be "would have"', () => 'would have'],
+    [/\b(must of)\b/gi, 'error', 'Grammar: "must of" should be "must have"', () => 'must have'],
+    [/\b(alot of)\b/gi, 'error', 'Grammar: "alot" is not a word — use "a lot" or "many"', () => 'a lot of'],
+
+    // Their/There/They're
+    [/\b(their is)\b/gi, 'error', 'Grammar: "their is" should be "there is"', () => 'there is'],
+    [/\b(their are)\b/gi, 'error', 'Grammar: "their are" should be "there are"', () => 'there are'],
+
+    // Your/You're
+    [/\b(your going)\b/gi, 'error', 'Grammar: "your going" should be "you\'re going"', () => "you're going"],
+    [/\b(your doing)\b/gi, 'error', 'Grammar: "your doing" should be "you\'re doing"', () => "you're doing"],
+
+    // To/Too
+    [/\b(to late)\b/gi, 'error', 'Grammar: "to late" should be "too late"', () => 'too late'],
+    [/\b(to much)\b/gi, 'error', 'Grammar: "to much" should be "too much"', () => 'too much'],
+    [/\b(to many)\b/gi, 'error', 'Grammar: "to many" should be "too many"', () => 'too many'],
+
+    // Double negatives
+    [/\b(haven'\s*t\s+not)\b/gi, 'error', 'Grammar: double negative', () => "haven't"],
+    [/\b(don'\s*t\s+no)\b/gi, 'error', 'Grammar: "don\'t no" should be "don\'t know"', () => "don't know"],
+
+    // Missing apostrophes
+    [/\b(cant)\b/gi, 'error', 'Grammar: "cant" should be "can\'t"', () => "can't"],
+    [/\b(wont)\b/gi, 'error', 'Grammar: "wont" should be "won\'t"', () => "won't"],
+    [/\b(dont)\b/gi, 'error', 'Grammar: "dont" should be "don\'t"', () => "don't"],
+    [/\b(doesnt)\b/gi, 'error', 'Grammar: "doesnt" should be "doesn\'t"', () => "doesn't"],
+    [/\b(isnt)\b/gi, 'error', 'Grammar: "isnt" should be "isn\'t"', () => "isn't"],
+    [/\b(wasnt)\b/gi, 'error', 'Grammar: "wasnt" should be "wasn\'t"', () => "wasn't"],
+    [/\b(arent)\b/gi, 'error', 'Grammar: "arent" should be "aren\'t"', () => "aren't"],
+    [/\b(im)\b/gi, 'error', 'Grammar: "im" should be "I\'m"', () => "I'm"],
+
+    // Style issues
+    [/\b(very\s+very)\b/gi, 'warn', 'Style: redundant "very very"', () => 'very'],
+    [/\b(really\s+really)\b/gi, 'warn', 'Style: redundant "really really"', () => 'really'],
+    [/\b(\w+\s+very\s+\w+)\b/gi, 'sugg', 'Style: consider a stronger word instead of "very + adjective"'],
+
+    // Capitalization
+    [/^\s*(i)\s/gm, 'error', 'Capitalization: "i" should be "I"', () => 'I '],
+    [/\b(i'm)\b/gi, 'error', 'Capitalization: "i\'m" should be "I\'m"', () => "I'm"],
+    [/\b(i've)\b/gi, 'error', 'Capitalization: "i\'ve" should be "I\'ve"', () => "I've"],
+    [/\b(i'll)\b/gi, 'error', 'Capitalization: "i\'ll" should be "I\'ll"', () => "I'll"],
+    [/\b(i'd)\b/gi, 'error', 'Capitalization: "i\'d" should be "I\'d"', () => "I'd"],
+
+    // Punctuation
+    [/\s+,/g, 'warn', 'Punctuation: space before comma', () => ','],
+    [/\s+\./g, 'warn', 'Punctuation: space before period', () => '.'],
+    [/\b([a-z])\s{2,}/g, 'warn', 'Style: extra spaces between words'],
+
+    // "Me and" should be "X and I"
+    [/\b(me and him)\b/gi, 'error', 'Grammar: "me and him" should be "he and I"', () => 'he and I'],
+    [/\b(me and her)\b/gi, 'error', 'Grammar: "me and her" should be "she and I"', () => 'she and I'],
+    [/\b(me and them)\b/gi, 'error', 'Grammar: "me and them" should be "they and I"', () => 'they and I'],
+    [/\b(him and me)\b/gi, 'error', 'Grammar: "him and me" should be "he and I"', () => 'he and I'],
+    [/\b(her and me)\b/gi, 'error', 'Grammar: "her and me" should be "she and I"', () => 'she and I'],
+
+    // Affect/Effect
+    [/\b(the affects of)\b/gi, 'error', 'Grammar: "affects" (verb) should be "effects" (noun)', () => 'the effects of'],
+    [/\b(will effect)\b/gi, 'error', 'Grammar: "will effect" should be "will affect"', () => 'will affect'],
+
+    // Then/Than
+    [/\b(more then)\b/gi, 'error', 'Grammar: "more then" should be "more than"', () => 'more than'],
+    [/\b(less then)\b/gi, 'error', 'Grammar: "less then" should be "less than"', () => 'less than'],
+    [/\b(better then)\b/gi, 'error', 'Grammar: "better then" should be "better than"', () => 'better than'],
+
+    // Desision/Decision
+    [/\b(desicion)\b/gi, 'error', 'Spelling: "desicion" should be "decision"', () => 'decision'],
+    [/\b(aproached)\b/gi, 'error', 'Spelling: should be "approached"', () => 'approached'],
+
+    // "along time" -> "a long time"
+    [/\b(along time)\b/gi, 'error', 'Grammar: "along time" should be "a long time"', () => 'a long time'],
+
+    // "needs to be" with plural subject
+    [/\b(issues that needs)\b/gi, 'error', 'Grammar: "needs" should be "need" (plural subject)', () => 'issues that need'],
+
+    // "addresed"
+    [/\b(addresed)\b/gi, 'error', 'Spelling: "addresed" should be "addressed"', () => 'addressed'],
+
+    // Apos'trophe
+    [/\b(its\s+\w+)\b(?!\s+been)/gi, 'warn', 'Grammar: "its" (possessive) vs "it\'s" (it is) — check if you mean "it is"'],
+  ];
+
+  for (const [re, type, message, fixFn] of rules) {
+    let match;
+    const regex = new RegExp(re.source, re.flags);
+    while ((match = regex.exec(text)) !== null) {
+      const matchedText = match[0];
+      const fix = fixFn ? (typeof fixFn === 'function' ? fixFn(matchedText) : fixFn) : null;
+      issues.push({
+        id: id++,
+        type,
+        message,
+        original: matchedText,
+        fix,
+        index: match.index,
+        context: text.slice(Math.max(0, match.index - 20), match.index + matchedText.length + 20)
+      });
+      if (match.index === regex.lastIndex) regex.lastIndex++;
+    }
+  }
+
+  // Sort by position
+  issues.sort((a, b) => a.index - b.index);
+  return issues;
+}
+
+function renderGrammarResults(issues, originalText) {
+  const summary = document.getElementById('grammarSummary');
+  const results = document.getElementById('grammarResults');
+
+  if (issues.length === 0) {
+    summary.style.display = 'flex';
+    summary.innerHTML = '<span style="color:#22c55e;font-weight:600">✓ No issues found!</span> Your text looks clean.';
+    results.classList.remove('show');
+    return;
+  }
+
+  const errors = issues.filter(i => i.type === 'error').length;
+  const warnings = issues.filter(i => i.type === 'warn').length;
+  const suggestions = issues.filter(i => i.type === 'sugg').length;
+
+  summary.style.display = 'flex';
+  summary.innerHTML = `
+    <span>Found <strong>${issues.length}</strong> issue${issues.length !== 1 ? 's' : ''}:</span>
+    ${errors ? `<span style="color:#fca5a5">${errors} error${errors !== 1 ? 's' : ''}</span>` : ''}
+    ${warnings ? `<span style="color:#fcd34d">${warnings} warning${warnings !== 1 ? 's' : ''}</span>` : ''}
+    ${suggestions ? `<span style="color:#a5b4fc">${suggestions} suggestion${suggestions !== 1 ? 's' : ''}</span>` : ''}
+  `;
+
+  results.classList.add('show');
+  results.innerHTML = issues.map(issue => {
+    const icon = issue.type === 'error' ? '!' : issue.type === 'warn' ? '⚠' : '✦';
+    const typeLabel = issue.type === 'error' ? 'Error' : issue.type === 'warn' ? 'Warning' : 'Suggestion';
+    const fixHtml = issue.fix
+      ? `<div class="g-fix" onclick="applyFix(${issue.id})">Replace with: "${escapeHtml(issue.fix)}" →</div>`
+      : '';
+    return `<div class="grammar-item" data-id="${issue.id}">
+      <div class="g-icon ${issue.type}">${icon}</div>
+      <div class="g-body">
+        <div class="g-type">${typeLabel}</div>
+        <div class="g-msg">${escapeHtml(issue.message)}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">...${escapeHtml(issue.context)}...</div>
+        ${fixHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function applyFix(issueId) {
+  const issue = STATE.grammarIssues.find(i => i.id === issueId);
+  if (!issue || !issue.fix) return;
+
+  let text = document.getElementById('grammarText').value;
+  text = text.slice(0, issue.index) + issue.fix + text.slice(issue.index + issue.original.length);
+  document.getElementById('grammarText').value = text;
+  updateGrammarWords();
+
+  // Remove this issue from list
+  STATE.grammarIssues = STATE.grammarIssues.filter(i => i.id !== issueId);
+  const remaining = STATE.grammarIssues;
+  if (remaining.length === 0) {
+    document.getElementById('grammarSummary').innerHTML = '<span style="color:#22c55e;font-weight:600">✓ All issues resolved!</span> Your text looks clean now.';
+    document.getElementById('grammarResults').classList.remove('show');
+  } else {
+    renderGrammarResults(remaining, text);
+  }
+}
+
+// ===== UTILITIES =====
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ===== INIT =====
+onEngineChange();
+updateWordCount();
+updateDetectWords();
+updateGrammarWords();
+document.getElementById('detectBtn').disabled = true;
+document.getElementById('grammarBtn').disabled = true;
+document.getElementById('humanizeBtn').disabled = true;
+</script>
+</body>
+</html>

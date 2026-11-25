@@ -1,0 +1,247 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Humanly Enterprise AI Humanizer & Fidelity API",
+    "version": "1.0.0",
+    "description": "High-performance API for AI text humanization, structural document extraction, atomic fact fidelity verification, and local 12B model lifecycle management."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:3000",
+      "description": "Local Humanly Application Server"
+    }
+  ],
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "summary": "System Health & Model Status",
+        "description": "Returns operational status of the server, uptime, and local llama.cpp 12B model availability.",
+        "responses": {
+          "200": {
+            "description": "Healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "healthy" },
+                    "version": { "type": "string", "example": "1.0.0" },
+                    "uptimeSeconds": { "type": "number", "example": 142.5 },
+                    "timestamp": { "type": "string", "example": "2026-11-25T21:30:00.000Z" },
+                    "modelServer": {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "running" },
+                        "isResponsive": { "type": "boolean", "example": true },
+                        "port": { "type": "integer", "example": 8080 },
+                        "pid": { "type": "integer", "nullable": true, "example": 12840 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/humanize": {
+      "post": {
+        "summary": "Humanize Text Snippet",
+        "description": "Rewrites AI-generated prose to natural human style with mandatory factual fidelity verification.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string", "description": "The prose text to rewrite." },
+                  "engine": { "type": "string", "enum": ["local", "local-server", "model"], "default": "local" },
+                  "tone": { "type": "string", "enum": ["natural", "academic", "casual"], "default": "natural" },
+                  "strength": { "type": "string", "enum": ["light", "standard", "enhanced"], "default": "standard" },
+                  "enforceFidelity": { "type": "boolean", "default": true, "description": "If true, reports critical violations when numbers or dates drift." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Humanized rewrite with fidelity report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": { "type": "string" },
+                    "originalWords": { "type": "integer" },
+                    "rewrittenWords": { "type": "integer" },
+                    "reuse": { "type": "number", "description": "Verbatim 5-gram reuse rate." },
+                    "engine": { "type": "string" },
+                    "fidelity": {
+                      "type": "object",
+                      "properties": {
+                        "passed": { "type": "boolean" },
+                        "summary": { "type": "string" },
+                        "criticalViolations": { "type": "array", "items": { "type": "object" } },
+                        "advisories": { "type": "array", "items": { "type": "object" } }
+                      }
+                    },
+                    "timings": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "503": { "description": "Local model server offline" }
+        }
+      }
+    },
+    "/api/v1/verify-fidelity": {
+      "post": {
+        "summary": "Atomic Fact Fidelity Verification",
+        "description": "Compares original vs rewritten text to detect hallucinated numbers, lost dates, dropped citations, or softened qualifiers.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["originalText", "rewrittenText"],
+                "properties": {
+                  "originalText": { "type": "string" },
+                  "rewrittenText": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fidelity analysis report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "passed": { "type": "boolean" },
+                    "summary": { "type": "string" },
+                    "criticalViolations": { "type": "array", "items": { "type": "object" } },
+                    "advisories": { "type": "array", "items": { "type": "object" } },
+                    "entityDiff": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parse-document": {
+      "post": {
+        "summary": "Extract & Classify Document Layout",
+        "description": "Parses raw text/markdown, classifies structural blocks (TOC, Table, Figure, Heading, Prose), and creates prose chunks.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["content"],
+                "properties": {
+                  "content": { "type": "string" },
+                  "filename": { "type": "string", "default": "document.txt" },
+                  "targetChunkMin": { "type": "integer", "default": 250 },
+                  "targetChunkMax": { "type": "integer", "default": 450 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parsed document structure and chunk manifest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "filename": { "type": "string" },
+                    "blocks": { "type": "array", "items": { "type": "object" } },
+                    "chunks": { "type": "array", "items": { "type": "object" } },
+                    "summary": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/batch-document": {
+      "post": {
+        "summary": "Batch Process Document Chunks",
+        "description": "Executes batch humanization over document chunks and reassembles into clean prose or full document with preserved non-prose elements.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["blocks", "chunks"],
+                "properties": {
+                  "blocks": { "type": "array", "items": { "type": "object" } },
+                  "chunks": { "type": "array", "items": { "type": "object" } },
+                  "engine": { "type": "string", "default": "local" },
+                  "tone": { "type": "string", "default": "natural" },
+                  "strength": { "type": "string", "default": "standard" },
+                  "reassembleMode": { "type": "string", "enum": ["clean-prose", "full-doc"], "default": "clean-prose" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch processing complete with reassembled document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reassembledText": { "type": "string" },
+                    "mode": { "type": "string" },
+                    "chunks": { "type": "array", "items": { "type": "object" } },
+                    "fidelitySummary": { "type": "object" },
+                    "wordCount": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/model-status": {
+      "get": {
+        "summary": "Check 12B Model Process Status",
+        "description": "Checks if the background llama-server process is active on port 8080."
+      }
+    },
+    "/api/start-model": {
+      "post": {
+        "summary": "Spawn Local 12B Model Process",
+        "description": "Starts llama-server with humanizer-12b-Q3-QAT.gguf on 127.0.0.1:8080."
+      }
+    },
+    "/api/stop-model": {
+      "post": {
+        "summary": "Stop Local 12B Model Process",
+        "description": "Gracefully terminates the background llama-server process."
+      }
+    }
+  }
+}

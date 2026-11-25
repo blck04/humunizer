@@ -349,16 +349,25 @@ Verdict: structurally excellent, roughly 8/10 factual fidelity, not submission-r
    - Catches missing numbers (e.g. "4.2%"), altered dates, dropped citations.
    - Qualifier softening tracked and surfaced as advisories.
    - Fully wired into `index.html` (Snippet mode & Document Extractor chunk inspector) and `turnitin_benchmark/generate_outputs.js`.
-4. **Unified Test Suite (`test_all.js`)**:
-   - 53 unit tests + full E2E pipeline test passing (100%).
+4. **Enterprise REST API & Swagger UI (`server.js`, `openapi.json`, `test_api.js`)**:
+   - High-performance, zero-dependency Node.js HTTP API server.
+   - `GET /api/v1/health`: System uptime, local 12B model availability and process metrics.
+   - `GET /api/v1/openapi.json`: Complete OpenAPI 3.0.3 specification.
+   - `GET /docs` & `GET /api/docs`: Interactive browser Swagger UI explorer.
+   - `POST /api/v1/humanize`: Text rewriting with automatic factual fidelity verification and reuse calculation.
+   - `POST /api/v1/verify-fidelity`: Atomic fact comparison, critical violation alerts, and qualifier drift tracking.
+   - `POST /api/v1/parse-document`: Structural block extraction, TOC/Table/Figure detection, and prose chunking.
+   - `POST /api/v1/batch-document`: Sequential chunk humanization and dual-mode document reassembly.
+5. **Unified Test Suite (`test_all.js`)**:
+   - 61 unit and API integration tests + full E2E pipeline test passing (100%).
 
 ### Remaining enterprise roadmap:
 1. **Local model benchmark completion**:
    - Run the full 12-draft smoke set using the local 12B model with `--resume`.
 2. **Turnitin instructor verification**:
    - Submit `.txt` drafts from `turnitin_benchmark/runs/` to an authorized Turnitin instructor/TCA account and record real AIW scores into `results.csv`.
-3. **Enterprise backend & compliance**:
-   - REST/OpenAPI endpoint for programmatic document processing.
+3. **Enterprise compliance & governance**:
+   - API authentication (API keys/Bearer tokens).
    - SOC 2 / EU AI Act Article 50 provenance logging and zero-data retention policy.
 
 ---

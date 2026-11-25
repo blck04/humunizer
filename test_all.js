@@ -9,7 +9,8 @@ const suites = [
   { name: 'Core Engine & Rules', file: 'test.js' },
   { name: 'Document Parser & Layout Classifier', file: 'test_doc_parser.js' },
   { name: 'Fidelity Gate & Fact Guard', file: 'test_fidelity_guard.js' },
-  { name: 'E2E Document Pipeline & Word Export', file: 'test_pipeline_e2e.js' }
+  { name: 'E2E Document Pipeline & Word Export', file: 'test_pipeline_e2e.js' },
+  { name: 'Enterprise REST API Gateway', file: 'test_api.js' }
 ];
 
 console.log('====================================================');
